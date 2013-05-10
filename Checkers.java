@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -8,7 +9,6 @@ public class Checkers {
 		Game game = new Game();
 		game.start();
 		String inMove;
-		//test
 		System.out.println("Welcome to Checkers");
 		
 		while (game.getValidMoves().size() != 0){
@@ -113,6 +113,11 @@ class Game implements Cloneable{
 	//Prints out the board
 	public void printBoard(){
 		board.printBoard();
+	}
+	
+	//Prints out true that the current player has lost
+	public boolean hasLost(){
+		return validMoves.size() == 0;
 	}
 	
 	//Performs the given move returning true if successful
@@ -322,13 +327,13 @@ class Game implements Cloneable{
 				for (int x = 0; x < 8; x++){
 					if(x%2 == y%2){
 						if (board.getPiece(x, y) == Piece.RED)
-							output += "r";
+							output += "a";
 						else if (board.getPiece(x, y) == Piece.BLACK)
-							output += "b";
+							output += "o";
 						else if (board.getPiece(x, y) == Piece.BLACK_KING)
-							output += "B";
+							output += "O";
 						else if (board.getPiece(x, y) == Piece.RED_KING)
-							output += "R";
+							output += "A";
 						else
 							output += " ";
 					}
@@ -340,13 +345,13 @@ class Game implements Cloneable{
 				for (int x = 7; x >= 0; x--){
 					if(x%2 == y%2){
 						if (board.getPiece(x, y) == Piece.RED)
-							output += "r";
+							output += "o";
 						else if (board.getPiece(x, y) == Piece.BLACK)
-							output += "b";
+							output += "a";
 						else if (board.getPiece(x, y) == Piece.BLACK_KING)
-							output += "B";
+							output += "A";
 						else if (board.getPiece(x, y) == Piece.RED_KING)
-							output += "R";
+							output += "O";
 						else
 							output += " ";
 					}
@@ -464,15 +469,70 @@ class Game implements Cloneable{
 	}
 }
 
-class AI{
+class AI_Probability{
 	//A hashmap that stores the probability array for each board state
 	private HashMap<String, int[]> boardMoves = new HashMap<String, int[]>();
+	private char color;
+	private ArrayList<String> gameBoards = new ArrayList<String>();
+	private ArrayList<Integer> gameMoves = new ArrayList<Integer>();
+	
+	//The game currently being played
+	private Game game;
 	
 	//Empty constructor
-	public AI(){
-		
+	public AI_Probability(){
 	}
 	
+	//Basic game constructor
+	public AI_Probability(Game game, char c){
+		this.game = game;
+		color = c;
+	}
 	
+	//Returns the index within the current validMoves array of the desired move
+	public int makeMove(){
+		int[] moveStats = getHashMoves();
+		ArrayList<Integer> moveChances = new ArrayList<Integer>();
+		
+		for (int i = 0; i < moveStats.length; i++){
+			for (int j = 0; j < moveStats[i]; j++){
+				moveChances.add(i);
+			}
+		}
+		
+		int move = moveChances.get((int)(Math.random()*moveChances.size()));
+		gameMoves.add(move);
+		return move;
+	}
+	
+	//Returns the int[] value for the current board
+	//If there is none for the current board, add a new int[] array for the board key
+	private int[] getHashMoves(){
+		String boardSerial = game.serializeBoard(color);
+		int[] moveStats = boardMoves.get(boardSerial);
+		gameBoards.add(boardSerial);
+		
+		if (moveStats == null){
+			moveStats = new int[game.getValidMoves().size()];
+			Arrays.fill(moveStats, 10);
+			boardMoves.put(boardSerial, moveStats);
+		}
+		
+		return moveStats;
+	}
+	
+	public void endGame(boolean isWinner){
+		int[] moveStats;
+		int change = isWinner ? 1 : -1;
+		
+		for (int i = 0; i < gameBoards.size(); i++){
+			moveStats = boardMoves.get(gameBoards.get(i));
+			moveStats[gameMoves.get(i)] += change;
+			boardMoves.put(gameBoards.get(i), moveStats);
+		}
+		
+		gameBoards.clear();
+		gameMoves.clear();
+	}
 }
 
