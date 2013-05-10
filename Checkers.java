@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Checkers {
@@ -17,6 +18,9 @@ public class Checkers {
 				System.out.println("");
 				game.printBoard();
 				System.out.println("");
+				for (String move: game.getValidMoves())
+					System.out.print(move + " ");
+				System.out.println();
 				System.out.print("Move: ");
 				inMove = scan.nextLine();
 			}
@@ -26,115 +30,10 @@ public class Checkers {
 		scan.close();
 	}
 }
-
+ 
 //Enum for the pieces in the game
 enum Piece{
 EMPTY, RED, RED_KING, BLACK, BLACK_KING, OUTSIDE
-}
-
-//Used to represent the data of the board
-class Board implements Cloneable{
-	/*
-	 * A 2D array representation of the board
-	 * The inner array is the x position
-	 * The outer array is the y position
-	 * 
-	 * 	7   B   B   B   B
-	 * 	6 B   B   B   B
-	 * 	5   B   B   B   B
-	 * 	4 
-	 * 	3
-	 * 	2 R   R   R   R
-	 * 	1   R   R   R   R
-	 * 	0 R   R   R   R
-	 * 	  0 1 2 3 4 5 6 7
-	 * 
-	 * So board[0][0] is a red piece at the bottom left corner
-	 */
-	Piece[][] board = new Piece[8][8];
-	
-	//Default empty constructor 
-	public Board(){	
-	}
-	
-	//Initializes the board with starting set up
-	public void init(){
-		for (int x = 0; x < 8; x++){
-			for (int y = 0; y < 8; y++){
-				//Sets red pieces
-				if ((y == 0 || y == 2) && x%2 == 0) board[x][y] = Piece.RED;
-				else if (y == 1 && x%2 == 1) board[x][y] = Piece.RED;
-				//Sets black pieces
-				else if ((y == 5 || y == 7) && x%2 == 1) board[x][y] = Piece.BLACK;
-				else if (y == 6 && x%2 == 0) board[x][y] = Piece.BLACK;
-				//Sets empty spots
-				else if ((y == 4 && x%2 == 0) || (y == 3 && x%2 == 1)) board[x][y] = Piece.EMPTY;
-				//Sets remainder of board to outside the playable area
-				else board[x][y] = Piece.OUTSIDE;
-			}
-		}
-	}
-	
-	//Initializes a board as an empty board -- mainly used for testing
-	public void initEmpty(){
-		for (int x = 0; x < 8; x++)
-			for (int y = 0; y < 8; y++)
-				if (y%2 == x%2)
-					board[x][y] = Piece.EMPTY;
-	}
-	
-	//Assigns the specific spots to specific pieces -- used for testing
-	public void test(){
-		board[2][2] = Piece.RED;
-		board[3][3] = Piece.BLACK;
-		board[3][5] = Piece.BLACK;
-	}
-
-	public Board clone(){
-		Board cloneBoard = new Board();
-		for (int x = 0; x < 8; x++){
-			for (int y = 0; y < 8; y++){
-				cloneBoard.setPiece(x, y, board[x][y]);
-			}
-		}
-		
-		return cloneBoard;
-	}
-	
-	//Clone constructor
-	public Board(Board inBoard){
-		for (int x = 0; x < 8; x++){
-			for (int y = 0; y < 8; y++){
-				board[x][y] = inBoard.getPiece(x, y);
-			}
-		}
-	}
-	
-	//Returns the piece at the specified coordinate
-	public Piece getPiece(int x, int y){
-		return board[x][y];
-	}
-	
-	//Sets the spot at the coordinates to the specified piece
-	public void setPiece(int x, int y, Piece inPiece){
-		board[x][y] = inPiece;
-	}
-	
-	//Print the board to the terminal
-	public void printBoard(){
-		for (int y = 7; y >= 0 ; y--){
-			System.out.print("" + y + " ");
-			for (int x = 0; x < 8; x++){
-				if (board[x][y] == Piece.RED_KING) System.out.print("R ");
-				else if (board[x][y] == Piece.BLACK_KING) System.out.print("B ");
-				else if (board[x][y] == Piece.RED) System.out.print("r ");
-				else if (board[x][y] == Piece.BLACK) System.out.print("b ");
-				else System.out.print("  ");
-			}
-			System.out.println();	
-		}
-		System.out.println("  0 1 2 3 4 5 6 7");
-	}
 }
 
 /* 
@@ -163,6 +62,7 @@ class Game implements Cloneable{
 		
 	//Used to ensure that if a jump is possible, 
 	private boolean hasJumps = false;
+	
 	//Used to ensure that the same jump aren't repeated in an endless cycle
 	//The arraylist stores strings of the coordinates of the already jumped spots as a 2-char string
 	private ArrayList<String> alreadyJumped = new ArrayList<String>();
@@ -405,13 +305,173 @@ class Game implements Cloneable{
 					} //Check correct direction
 				} //Check inside board
 			} //for j -1 to 1
-		} //for i -1 to 1
-		
+		} //for i -1 to 1	
 		return moves;
 	}
 	
+	/*
+	 * Outputs the board as a serialized string
+	 * Reads the board from top left to bottom right storing the piece at each spot into a string
+	 * Takes in a char representing the player that the board should consider to be at the bottom
+	 */
+	public String serializeBoard(char bottomPlayer){
+		String output = "";
+		
+		if (bottomPlayer == 'r'){
+			for (int y = 7; y >= 0; y--){
+				for (int x = 0; x < 8; x++){
+					if(x%2 == y%2){
+						if (board.getPiece(x, y) == Piece.RED)
+							output += "r";
+						else if (board.getPiece(x, y) == Piece.BLACK)
+							output += "b";
+						else if (board.getPiece(x, y) == Piece.BLACK_KING)
+							output += "B";
+						else if (board.getPiece(x, y) == Piece.RED_KING)
+							output += "R";
+						else
+							output += " ";
+					}
+				}
+			}
+		}
+		else{
+			for (int y = 0; y < 8; y++){
+				for (int x = 7; x >= 0; x--){
+					if(x%2 == y%2){
+						if (board.getPiece(x, y) == Piece.RED)
+							output += "r";
+						else if (board.getPiece(x, y) == Piece.BLACK)
+							output += "b";
+						else if (board.getPiece(x, y) == Piece.BLACK_KING)
+							output += "B";
+						else if (board.getPiece(x, y) == Piece.RED_KING)
+							output += "R";
+						else
+							output += " ";
+					}
+				}
+			}
+		}
+		
+		return output;
+	}
 	
 	
+	//Used to represent the data of the board
+	private class Board implements Cloneable{
+		/*
+		 * A 2D array representation of the board
+		 * The inner array is the x position
+		 * The outer array is the y position
+		 * 
+		 * 	7   B   B   B   B
+		 * 	6 B   B   B   B
+		 * 	5   B   B   B   B
+		 * 	4 
+		 * 	3
+		 * 	2 R   R   R   R
+		 * 	1   R   R   R   R
+		 * 	0 R   R   R   R
+		 * 	  0 1 2 3 4 5 6 7
+		 * 
+		 * So board[0][0] is a red piece at the bottom left corner
+		 */
+		Piece[][] board = new Piece[8][8];
+		
+		//Default empty constructor 
+		public Board(){	
+		}
+		
+		//Initializes the board with starting set up
+		public void init(){
+			for (int x = 0; x < 8; x++){
+				for (int y = 0; y < 8; y++){
+					//Sets red pieces
+					if ((y == 0 || y == 2) && x%2 == 0) board[x][y] = Piece.RED;
+					else if (y == 1 && x%2 == 1) board[x][y] = Piece.RED;
+					//Sets black pieces
+					else if ((y == 5 || y == 7) && x%2 == 1) board[x][y] = Piece.BLACK;
+					else if (y == 6 && x%2 == 0) board[x][y] = Piece.BLACK;
+					//Sets empty spots
+					else if ((y == 4 && x%2 == 0) || (y == 3 && x%2 == 1)) board[x][y] = Piece.EMPTY;
+					//Sets remainder of board to outside the playable area
+					else board[x][y] = Piece.OUTSIDE;
+				}
+			}
+		}
+		
+		//Initializes a board as an empty board -- mainly used for testing
+		public void initEmpty(){
+			for (int x = 0; x < 8; x++)
+				for (int y = 0; y < 8; y++)
+					if (y%2 == x%2)
+						board[x][y] = Piece.EMPTY;
+		}
+		
+		//Assigns the specific spots to specific pieces -- used for testing
+		public void test(){
+			board[2][2] = Piece.RED;
+			board[3][3] = Piece.BLACK;
+			board[3][5] = Piece.BLACK;
+		}
+	
+		public Board clone(){
+			Board cloneBoard = new Board();
+			for (int x = 0; x < 8; x++){
+				for (int y = 0; y < 8; y++){
+					cloneBoard.setPiece(x, y, board[x][y]);
+				}
+			}
+			
+			return cloneBoard;
+		}
+		
+		//Clone constructor
+		public Board(Board inBoard){
+			for (int x = 0; x < 8; x++){
+				for (int y = 0; y < 8; y++){
+					board[x][y] = inBoard.getPiece(x, y);
+				}
+			}
+		}
+		
+		//Returns the piece at the specified coordinate
+		public Piece getPiece(int x, int y){
+			return board[x][y];
+		}
+		
+		//Sets the spot at the coordinates to the specified piece
+		public void setPiece(int x, int y, Piece inPiece){
+			board[x][y] = inPiece;
+		}
+		
+		//Print the board to the terminal
+		public void printBoard(){
+			for (int y = 7; y >= 0 ; y--){
+				System.out.print("" + y + " ");
+				for (int x = 0; x < 8; x++){
+					if (board[x][y] == Piece.RED_KING) System.out.print("R ");
+					else if (board[x][y] == Piece.BLACK_KING) System.out.print("B ");
+					else if (board[x][y] == Piece.RED) System.out.print("r ");
+					else if (board[x][y] == Piece.BLACK) System.out.print("b ");
+					else System.out.print("  ");
+				}
+				System.out.println();	
+			}
+			System.out.println("  0 1 2 3 4 5 6 7");
+		}
+	}
+}
+
+class AI{
+	//A hashmap that stores the probability array for each board state
+	private HashMap<String, int[]> boardMoves = new HashMap<String, int[]>();
+	
+	//Empty constructor
+	public AI(){
+		
+	}
 	
 	
 }
