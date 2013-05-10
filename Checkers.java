@@ -8,7 +8,7 @@ public class Checkers {
 		Game game = new Game();
 		game.start();
 		String inMove;
-		
+		//test
 		System.out.println("Welcome to Checkers");
 		
 		while (game.getValidMoves().size() != 0){
