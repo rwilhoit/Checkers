@@ -372,7 +372,7 @@ class Game implements Cloneable{
 								 */
 								else
 									for (int k = 0; k < extraJumps.size(); k++)
-										moves.add(inputMove + extraJumps.get(k).substring(5));
+										moves.add(inputMove + extraJumps.get(k).substring(3));
 							}//Checks spot past piece is empty
 						}//Checks for jumps
 						//Checks for single moves
