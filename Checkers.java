@@ -1,34 +1,87 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
 public class Checkers {
-	public static void main(String[] args){
-		Scanner scan = new Scanner(System.in);
-		Game game = new Game();
-		game.start();
+	public static void main(String[] args) throws IOException, ClassNotFoundException{
+		AI_Probability ai = new AI_Probability('B');
+		AI_Random ai_r;
 		String inMove;
-		System.out.println("Welcome to Checkers");
+		boolean isWinner;
+		int count = 0;
+		boolean multiJump;
+		String ai_move;
 		
-		while (game.getValidMoves().size() != 0){
-			do{
-				System.out.println("-----------------------");
-				System.out.println("Current Player: " + game.getCurrentPlayer());
-				System.out.println("");
-				game.printBoard();
-				System.out.println("");
-				for (String move: game.getValidMoves())
-					System.out.print(move + " ");
-				System.out.println();
-				System.out.print("Move: ");
-				inMove = scan.nextLine();
+		//ai.readFiletoHash();
+		
+		
+		for (int i = 0; i < 10000; i++){
+			Game game = new Game();
+			game.start();
+			
+			ai_r = new AI_Random(game, 'R');
+			ai.setGame(game);
+			
+			multiJump = false;
+			ai_move = "";
+			
+			System.out.println("Welcome to Checkers");
+			while (game.getValidMoves().size() != 0){
+				do{
+					System.out.println("-----------------------");
+					System.out.println("Current Player: " + game.getCurrentPlayer());
+					System.out.println("");
+					game.printBoard();
+					System.out.println("");
+					
+					if (multiJump){
+						inMove = ai_move.substring(0,4);
+						
+						if(ai_move.length() <= 4){
+							multiJump = false;
+						}
+						ai_move = ai_move.substring(2);
+					}
+					else if (ai.getColor() == game.getCurrentPlayer()){
+						ai_move = game.getValidMoves().get(ai.makeMove());
+						
+						if (ai_move.length() > 5){
+							multiJump = true;
+						}
+						
+						inMove = ai_move.substring(1, 5);
+						ai_move = ai_move.substring(3);
+					}
+					else {
+						inMove = game.getValidMoves().get(ai_r.makeMove()).substring(1, 5);	
+					}
+					
+					System.out.println();
+					System.out.print("Possible Moves: ");
+					for(String move: game.getValidMoves())
+						System.out.print(move + " ");
+					System.out.println("Move: " + inMove);
+				}
+				while (!ai.isEndless() && game.getValidMoves().size() != 0 && !game.makeMove(Character.getNumericValue(inMove.charAt(0)), Character.getNumericValue(inMove.charAt(1)), Character.getNumericValue(inMove.charAt(2)), Character.getNumericValue(inMove.charAt(3))));
 			}
-			while (game.getValidMoves().size() != 0 && !game.makeMove(Character.getNumericValue(inMove.charAt(0)), Character.getNumericValue(inMove.charAt(1)), Character.getNumericValue(inMove.charAt(2)), Character.getNumericValue(inMove.charAt(3))));
+			
+			isWinner = game.getCurrentPlayer() != ai.getColor();
+			ai.endGame(isWinner && !ai.isEndless());
+			
+			if (isWinner) count++;
 		}
 		
-		scan.close();
+		ai.saveHashtoFile();
+		System.out.println("Total wins: " + count);
 	}
+	
 }
  
 //Enum for the pieces in the game
@@ -219,6 +272,7 @@ class Game implements Cloneable{
 		//Resets hasJumps to false and clears validMoves
 		hasJumps = false;
 		validMoves.clear();
+		alreadyJumped.clear();
 		
 		
 		//Searches through the entire board
@@ -469,12 +523,35 @@ class Game implements Cloneable{
 	}
 }
 
+class AI_Random{
+	private Game game;
+	private char color; 
+	
+	public AI_Random(){
+		
+	}
+	
+	public AI_Random(Game g, char c){
+		game = g;
+		color = c;
+	}
+	
+	public int makeMove(){
+		return (int)(Math.random() * game.getValidMoves().size());
+	}
+	
+	public char getColor(){
+		return color;
+	}
+}
+
 class AI_Probability{
 	//A hashmap that stores the probability array for each board state
 	private HashMap<String, int[]> boardMoves = new HashMap<String, int[]>();
 	private char color;
 	private ArrayList<String> gameBoards = new ArrayList<String>();
 	private ArrayList<Integer> gameMoves = new ArrayList<Integer>();
+	private int countRandomMoves = 0;
 	
 	//The game currently being played
 	private Game game;
@@ -484,9 +561,12 @@ class AI_Probability{
 	}
 	
 	//Basic game constructor
-	public AI_Probability(Game game, char c){
-		this.game = game;
+	public AI_Probability(char c){
 		color = c;
+	}
+	
+	public void setGame(Game game){
+		this.game = game;
 	}
 	
 	//Returns the index within the current validMoves array of the desired move
@@ -500,9 +580,22 @@ class AI_Probability{
 			}
 		}
 		
-		int move = moveChances.get((int)(Math.random()*moveChances.size()));
+		int move;
+		if(moveChances.size() == 0){
+			countRandomMoves++;
+			move = (int)(Math.random()*game.getValidMoves().size());
+		}
+		else{
+			countRandomMoves = 0;
+			move = moveChances.get((int)(Math.random()*moveChances.size()));
+		}
+			
 		gameMoves.add(move);
 		return move;
+	}
+	
+	public char getColor(){
+		return color;
 	}
 	
 	//Returns the int[] value for the current board
@@ -528,11 +621,32 @@ class AI_Probability{
 		for (int i = 0; i < gameBoards.size(); i++){
 			moveStats = boardMoves.get(gameBoards.get(i));
 			moveStats[gameMoves.get(i)] += change;
+			moveStats[gameMoves.get(i)] = moveStats[gameMoves.get(i)] + change < 0 ? 0 : moveStats[gameMoves.get(i)] + change; 
 			boardMoves.put(gameBoards.get(i), moveStats);
 		}
 		
 		gameBoards.clear();
 		gameMoves.clear();
+	}
+	
+	public boolean isEndless(){
+		return countRandomMoves == 5;
+	}
+	
+	public void saveHashtoFile() throws IOException{
+		File file = new File("Hash File");
+		FileOutputStream f = new FileOutputStream(file);
+		ObjectOutputStream s = new ObjectOutputStream(f);
+		s.writeObject(boardMoves);
+		s.close();
+	}
+	
+	public void readFiletoHash() throws IOException, ClassNotFoundException{
+		File file = new File("Hash File");
+		FileInputStream f = new FileInputStream(file);
+		ObjectInputStream s = new ObjectInputStream(f);
+		boardMoves = (HashMap<String, int[]>) s.readObject();
+		s.close();
 	}
 }
 
