@@ -74,6 +74,21 @@ class Board implements Cloneable{
 			}
 		}
 	}
+	
+	//Initializes a board as an empty board -- mainly used for testing
+	public void initEmpty(){
+		for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++)
+				if (y%2 == x%2)
+					board[x][y] = Piece.EMPTY;
+	}
+	
+	//Assigns the specific spots to specific pieces -- used for testing
+	public void test(){
+		board[2][2] = Piece.RED;
+		board[3][3] = Piece.BLACK;
+		board[3][5] = Piece.BLACK;
+	}
 
 	public Board clone(){
 		Board cloneBoard = new Board();
@@ -174,6 +189,14 @@ class Game implements Cloneable{
 	public void start(){
 		board.init();
 		currentPlayer = 'R';
+		setValidMoves();
+	}
+	
+	//Starts the game using the test spots
+	public void test(){
+		board.initEmpty();
+		currentPlayer = 'R';
+		board.test();
 		setValidMoves();
 	}
 	
