@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 import com.seniorproject.checkers.Game;
 
-public class AI_Probability{
+public class AI_Probability {
 	//A hashmap that stores the probability array for each board state
 	private HashMap<String, int[]> boardMoves = new HashMap<String, int[]>();
 	private char color;
@@ -24,12 +24,13 @@ public class AI_Probability{
 	private Game game;
 	
 	//Empty constructor
-	public AI_Probability(){
+	public AI_Probability() {
+		// Empty constructor
 	}
 	
 	//Basic game constructor
-	public AI_Probability(char c){
-		color = c;
+	public AI_Probability(char color){
+		this.color = color;
 	}
 	
 	public void setGame(Game game){
@@ -37,22 +38,22 @@ public class AI_Probability{
 	}
 	
 	//Returns the index within the current validMoves array of the desired move
-	public int makeMove(){
+	public int makeMove() {
 		int[] moveStats = getHashMoves();
 		ArrayList<Integer> moveChances = new ArrayList<Integer>();
 		
-		for (int i = 0; i < moveStats.length; i++){
-			for (int j = 0; j < moveStats[i]; j++){
+		for (int i = 0; i < moveStats.length; i++) {
+			for (int j = 0; j < moveStats[i]; j++) {
 				moveChances.add(i);
 			}
 		}
 		
 		int move;
-		if(moveChances.size() == 0){
+		if(moveChances.size() == 0) {
 			countRandomMoves++;
 			move = (int)(Math.random()*game.getValidMoves().size());
 		}
-		else{
+		else {
 			countRandomMoves = 0;
 			move = moveChances.get((int)(Math.random()*moveChances.size()));
 		}
@@ -67,12 +68,12 @@ public class AI_Probability{
 	
 	//Returns the int[] value for the current board
 	//If there is none for the current board, add a new int[] array for the board key
-	private int[] getHashMoves(){
+	private int[] getHashMoves() {
 		String boardSerial = game.serializeBoard(color);
 		int[] moveStats = boardMoves.get(boardSerial);
 		gameBoards.add(boardSerial);
 		
-		if (moveStats == null){
+		if (moveStats == null) {
 			moveStats = new int[game.getValidMoves().size()];
 			Arrays.fill(moveStats, 10);
 			boardMoves.put(boardSerial, moveStats);
@@ -81,11 +82,11 @@ public class AI_Probability{
 		return moveStats;
 	}
 	
-	public void endGame(boolean isWinner){
+	public void endGame(boolean isWinner) {
 		int[] moveStats;
 		int change = isWinner ? 1 : -1;
 		
-		for (int i = 0; i < gameBoards.size(); i++){
+		for (int i = 0; i < gameBoards.size(); i++) {
 			moveStats = boardMoves.get(gameBoards.get(i));
 			moveStats[gameMoves.get(i)] += change;
 			moveStats[gameMoves.get(i)] = moveStats[gameMoves.get(i)] + change < 0 ? 0 : moveStats[gameMoves.get(i)] + change; 
@@ -96,11 +97,11 @@ public class AI_Probability{
 		gameMoves.clear();
 	}
 	
-	public boolean isEndless(){
+	public boolean isEndless() {
 		return countRandomMoves == 5;
 	}
 	
-	public void saveHashtoFile() throws IOException{
+	public void saveHashtoFile() throws IOException {
 		File file = new File("Hash File");
 		FileOutputStream f = new FileOutputStream(file);
 		ObjectOutputStream s = new ObjectOutputStream(f);
@@ -108,7 +109,7 @@ public class AI_Probability{
 		s.close();
 	}
 	
-	public void readFiletoHash() throws IOException, ClassNotFoundException{
+	public void readFiletoHash() throws IOException, ClassNotFoundException {
 		File file = new File("Hash File");
 		FileInputStream f = new FileInputStream(file);
 		ObjectInputStream s = new ObjectInputStream(f);

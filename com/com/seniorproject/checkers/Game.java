@@ -7,7 +7,8 @@ import java.util.ArrayList;
  * Handles all the rules for the game and controls for the current player
  * Moves must be passed through the Game class
  */
-public class Game implements Cloneable{
+public class Game implements Cloneable {
+	
 	Board board = new Board();
 	char currentPlayer = 'R';
 	
@@ -34,7 +35,9 @@ public class Game implements Cloneable{
 	private ArrayList<String> alreadyJumped = new ArrayList<String>();
 	
 	//Empty constructor
-	public Game(){}
+	public Game() {
+		// Constructor is empty
+	}
 	
 	//Clone constructor
 	public Game(Board board, char currentPlayer, ArrayList<String> validMoves){
@@ -94,9 +97,11 @@ public class Game implements Cloneable{
 				currentPlayer == 'R') ||
 				((board.getPiece(startX, startY) == Piece.RED || 
 				board.getPiece(startX, startY) == Piece.RED_KING) &&
-				currentPlayer == 'B'))
+				currentPlayer == 'B')) {
+			// Illegal move
 			return false;
-		
+		}
+			
 		//String representation of the first move
 		String firstMove = "" + startX + startY + endX + endY;
 		
@@ -113,19 +118,23 @@ public class Game implements Cloneable{
 			currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
 			//Set the valid moves for the new player
 			setValidMoves();
+			
 			return true;
 		}
 		
 		//The rest of the code is for potential jumps
 		//Stores all valid moves that have the inputted first move into reducedValidMoves
 		ArrayList<String> reducedValidMoves = new ArrayList<String>();
-		for (String move: validMoves)
-			if (move.substring(1, 5).equals(firstMove))
+		for (String move: validMoves) {
+			if (move.substring(1, 5).equals(firstMove)) {
 				reducedValidMoves.add(move);
+			}
+		}
 		
 		//If reducedValidMoves has no entry, then the move was not valid
-		if (reducedValidMoves.size() == 0)
+		if (reducedValidMoves.size() == 0) {
 			return false;
+		}
 		/*
 		 * Checks if the jump was a single jump
 		 * If so, simply perform the jump, change players, and reset validMoves
@@ -149,7 +158,7 @@ public class Game implements Cloneable{
 		 * from all the jump moves in the reducedValidMoves list.
 		 * Finally setValidMoves to be this reducedValidMoves list
 		 */
-		else{
+		else {
 			//First copy the original piece to the new spot
 			board.setPiece(endX, endY, board.getPiece(startX, startY));
 			//Then set the original spot to empty
@@ -157,31 +166,138 @@ public class Game implements Cloneable{
 			//Then set the jumped spot to empty
 			board.setPiece((startX + endX)/2, (startY + endY)/2, Piece.EMPTY);
 			
-			for(int i = 0; i < reducedValidMoves.size(); i++)
+			for(int i = 0; i < reducedValidMoves.size(); i++) {
 				reducedValidMoves.set(i, "t" + reducedValidMoves.get(i).substring(3));
+			}
 			
 			validMoves = reducedValidMoves;
+			
 			return true;
 		}
 		
 		
 	}
+
+	//Performs the given move returning true if successful
+	public boolean makeMoveForString(String potentialMove) {
+		
+		int startX = new Integer(potentialMove.substring(1,2));
+		int startY = new Integer(potentialMove.substring(2,3));
+		int endX = new Integer(potentialMove.substring(3,4));
+		int endY = new Integer(potentialMove.substring(4,5));
+		
+		//Checks the start piece is for the correct player
+		if(((board.getPiece(startX, startY) == Piece.BLACK || 
+				board.getPiece(startX, startY) == Piece.BLACK_KING) &&
+				currentPlayer == 'R') ||
+				((board.getPiece(startX, startY) == Piece.RED || 
+				board.getPiece(startX, startY) == Piece.RED_KING) &&
+				currentPlayer == 'B')) {
+			// Illegal move
+			return false;
+		}
+			
+		//String representation of the first move
+		String firstMove = "" + startX + startY + endX + endY;
+		
+		//Checks to see if the move is normal single spot move and is valid
+		//If so, perform the move, then switch the player and find the new valid moves
+		//To speed up the search, it first checks if the validMoves list contains a jump
+		//If it does have a jump, then the list for sure won't have the single move
+		if (Math.abs(endX - startX) == 1 && validMoves.get(0).charAt(0) != 't' && validMoves.contains("f" + firstMove)){
+			//First copy the original piece to the new spot
+			board.setPiece(endX, endY, checkKing(endY, board.getPiece(startX, startY)));
+			//Then set the original spot to empty
+			board.setPiece(startX, startY, Piece.EMPTY);
+			//Change the current player
+			currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
+			//Set the valid moves for the new player
+			setValidMoves();
+			
+			return true;
+		}
+		
+		//The rest of the code is for potential jumps
+		//Stores all valid moves that have the inputted first move into reducedValidMoves
+		ArrayList<String> reducedValidMoves = new ArrayList<String>();
+		for (String move: validMoves) {
+			if (move.substring(1, 5).equals(firstMove)) {
+				reducedValidMoves.add(move);
+			}
+		}
+		
+		//If reducedValidMoves has no entry, then the move was not valid
+		if (reducedValidMoves.size() == 0) {
+			return false;
+		}
+		/*
+		 * Checks if the jump was a single jump
+		 * If so, simply perform the jump, change players, and reset validMoves
+		 */
+		else if (reducedValidMoves.get(0).length() == 5){
+			//First copy the original piece to the new spot
+			board.setPiece(endX, endY, checkKing(endY, board.getPiece(startX, startY)));
+			//Then set the original spot to empty
+			board.setPiece(startX, startY, Piece.EMPTY);
+			//Then set the jumped spot to empty
+			board.setPiece((startX + endX)/2, (startY + endY)/2, Piece.EMPTY);
+			//Change the current player
+			currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
+			//Set the valid moves for the new player
+			setValidMoves();
+			return true;
+		}
+		/*
+		 * If the move was a double jump or larger
+		 * Perform the first jump, then remove that first jump
+		 * from all the jump moves in the reducedValidMoves list.
+		 * Finally setValidMoves to be this reducedValidMoves list
+		 */
+		else {
+			//First copy the original piece to the new spot
+			board.setPiece(endX, endY, board.getPiece(startX, startY));
+			//Then set the original spot to empty
+			board.setPiece(startX, startY, Piece.EMPTY);
+			//Then set the jumped spot to empty
+			board.setPiece((startX + endX)/2, (startY + endY)/2, Piece.EMPTY);
+			
+			for(int i = 0; i < reducedValidMoves.size(); i++) {
+				reducedValidMoves.set(i, "t" + reducedValidMoves.get(i).substring(3));
+			}
+			
+			validMoves = reducedValidMoves;
+			
+			return true;
+		}
+		
+		
+	}
+
 	
 	/*
 	 * Checks if the end y position would king the piece
 	 * If so, return the king'ed version
 	 */
-	private Piece checkKing(int endY, Piece piece){
-		if (piece == Piece.RED && endY == 7)
-			return Piece.RED_KING;
-		else if (piece == Piece.BLACK && endY == 0)
-			return Piece.BLACK_KING;
-		else 
-			return piece;
+	private Piece checkKing(int endY, Piece piece) {
+		
+		Piece pieceToReturn; 
+		
+		if (piece == Piece.RED && endY == 7) {
+			pieceToReturn = Piece.RED_KING;
+		}
+		else if (piece == Piece.BLACK && endY == 0) {
+			pieceToReturn = Piece.BLACK_KING;
+		}
+		else {
+			pieceToReturn =  piece;
+		}
+		
+		return pieceToReturn;
 	}
 	
 	//Finds all the valid moves and stores them into validMove list
-	private void setValidMoves(){
+	private void setValidMoves() {
+		
 		//Resets hasJumps to false and clears validMoves
 		hasJumps = false;
 		validMoves.clear();
@@ -189,11 +305,12 @@ public class Game implements Cloneable{
 		
 		
 		//Searches through the entire board
-		for (int x = 0; x < 8; x++){
-			for (int y = 0; y < 8; y++){
+		for (int x = 0; x < 8; x++) {
+			for (int y = 0; y < 8; y++) {
 				//Checks to only get the moves of pieces for the current player
 				if ((currentPlayer == 'B' && (board.getPiece(x, y) == Piece.BLACK || board.getPiece(x, y) == Piece.BLACK_KING)) ||
 					(currentPlayer == 'R' && (board.getPiece(x, y) == Piece.RED || board.getPiece(x, y) == Piece.RED_KING))){
+					
 					//Resets the alreadyJumped list
 					alreadyJumped.clear();
 					validMoves.addAll(checkSurroundings(x, y, board.getPiece(x, y)));
@@ -202,10 +319,13 @@ public class Game implements Cloneable{
 		}
 		
 		//If hasJumps was ever enabled, then all the non-jump moves need to removed
-		if (hasJumps)
-			for (int i = 0; i < validMoves.size(); i++)
-				if (validMoves.get(i).charAt(0) == 'f')
+		if (hasJumps) {
+			for (int i = 0; i < validMoves.size(); i++) {
+				if (validMoves.get(i).charAt(0) == 'f') {
 					validMoves.remove(i);
+				}
+			}
+		}
 	}
 	
 	/*
@@ -214,31 +334,31 @@ public class Game implements Cloneable{
 	 * If a jump is possible, then the method will change the global variable hasJumps to true
 	 * Later if hasJumps is true, then all the non-jump moves will be removed
 	 */
-	private ArrayList<String> checkSurroundings(int x, int y, Piece color){
+	private ArrayList<String> checkSurroundings(int x, int y, Piece color) {
 		ArrayList<String> moves = new ArrayList<String>();
 		
 		//Used to set the opponent of the colored piece
-		Piece 	opponent = Piece.EMPTY, 
-				opponentKing = Piece.EMPTY;
+		Piece opponent = Piece.EMPTY; 
+		Piece opponentKing = Piece.EMPTY;
 		
-		if ((color == Piece.RED) || color == Piece.RED_KING){
+		if ((color == Piece.RED) || color == Piece.RED_KING) {
 			opponent = Piece.BLACK;
 			opponentKing = Piece.BLACK_KING;
 		}
-		else{
+		else {
 			opponent = Piece.RED;
 			opponentKing = Piece.RED_KING;
 		}
 		
 		//Checks all four squares around the piece
-		for (int i = -1; i <= 1; i+=2){ //Modifier for x
-			for (int j = -1; j <= 1; j+=2){ //Modifier for y
+		for (int i = -1; i <= 1; i+=2) { //Modifier for x
+			for (int j = -1; j <= 1; j+=2) { //Modifier for y
 				//First makes sure that the four squares are still within the board
-				if (x + i >= 0 && x + i < 8 && y + j >= 0 && y + j < 8){
+				if (x + i >= 0 && x + i < 8 && y + j >= 0 && y + j < 8) {
 					//Checks to make sure the piece is moving in the correct direction
 					if ((color == Piece.RED && j == 1) || color == Piece.RED_KING || (color == Piece.BLACK && j == -1) || color == Piece.BLACK_KING){
 						//First checks for possible jumps
-						if ((board.getPiece(x+i, y+j) == opponent || board.getPiece(x+i, y+j) == opponentKing) && !alreadyJumped.contains("" + (x+i) + (y+j))){
+						if ((board.getPiece(x+i, y+j) == opponent || board.getPiece(x+i, y+j) == opponentKing) && !alreadyJumped.contains("" + (x+i) + (y+j))) {
 							if (x + (2*i) >= 0 && x + (2*i) < 8 && 
 								y + (2*j) >= 0 && y + (2*j) < 8 &&
 								board.getPiece(x + (2*i), y + (2*j)) == Piece.EMPTY){
@@ -286,41 +406,51 @@ public class Game implements Cloneable{
 	 * Reads the board from top left to bottom right storing the piece at each spot into a string
 	 * Takes in a char representing the player that the board should consider to be at the bottom
 	 */
-	public String serializeBoard(char bottomPlayer){
-		String output = "";
+	public String serializeBoard(char bottomPlayer) {
+		String output = new String();
 		
-		if (bottomPlayer == 'r'){
-			for (int y = 7; y >= 0; y--){
-				for (int x = 0; x < 8; x++){
-					if(x%2 == y%2){
-						if (board.getPiece(x, y) == Piece.RED)
+		if (bottomPlayer == 'r') {
+			for (int y = 7; y >= 0; y--) {
+				for (int x = 0; x < 8; x++) {
+					if(x%2 == y%2) {
+						if (board.getPiece(x, y) == Piece.RED) {
 							output += "a";
-						else if (board.getPiece(x, y) == Piece.BLACK)
+						}
+						else if (board.getPiece(x, y) == Piece.BLACK) {
 							output += "o";
-						else if (board.getPiece(x, y) == Piece.BLACK_KING)
+						}
+						else if (board.getPiece(x, y) == Piece.BLACK_KING) {
 							output += "O";
-						else if (board.getPiece(x, y) == Piece.RED_KING)
+						}
+						else if (board.getPiece(x, y) == Piece.RED_KING) {
 							output += "A";
-						else
+						}
+						else {
 							output += " ";
+						}
 					}
 				}
 			}
 		}
-		else{
-			for (int y = 0; y < 8; y++){
-				for (int x = 7; x >= 0; x--){
+		else {
+			for (int y = 0; y < 8; y++) {
+				for (int x = 7; x >= 0;x--) {
 					if(x%2 == y%2){
-						if (board.getPiece(x, y) == Piece.RED)
+						if (board.getPiece(x, y) == Piece.RED) {
 							output += "o";
-						else if (board.getPiece(x, y) == Piece.BLACK)
+						}
+						else if (board.getPiece(x, y) == Piece.BLACK) {
 							output += "a";
-						else if (board.getPiece(x, y) == Piece.BLACK_KING)
+						}
+						else if (board.getPiece(x, y) == Piece.BLACK_KING) {
 							output += "A";
-						else if (board.getPiece(x, y) == Piece.RED_KING)
+						}
+						else if (board.getPiece(x, y) == Piece.RED_KING) {
 							output += "O";
-						else
+						}
+						else {
 							output += " ";
+						}
 					}
 				}
 			}
@@ -331,7 +461,7 @@ public class Game implements Cloneable{
 	
 	
 	//Used to represent the data of the board
-	private class Board implements Cloneable{
+	private class Board implements Cloneable {
 		/*
 		 * A 2D array representation of the board
 		 * The inner array is the x position
@@ -352,46 +482,62 @@ public class Game implements Cloneable{
 		Piece[][] board = new Piece[8][8];
 		
 		//Default empty constructor 
-		public Board(){	
+		public Board() {
+			// Empty constructor
 		}
 		
 		//Initializes the board with starting set up
-		public void init(){
-			for (int x = 0; x < 8; x++){
-				for (int y = 0; y < 8; y++){
+		public void init() {
+			for (int x = 0; x < 8; x++) {
+				for (int y = 0; y < 8; y++) {
 					//Sets red pieces
-					if ((y == 0 || y == 2) && x%2 == 0) board[x][y] = Piece.RED;
-					else if (y == 1 && x%2 == 1) board[x][y] = Piece.RED;
+					if ((y == 0 || y == 2) && x%2 == 0) {
+						board[x][y] = Piece.RED;
+					}
+					else if (y == 1 && x%2 == 1) { 
+						board[x][y] = Piece.RED;
+					}
 					//Sets black pieces
-					else if ((y == 5 || y == 7) && x%2 == 1) board[x][y] = Piece.BLACK;
-					else if (y == 6 && x%2 == 0) board[x][y] = Piece.BLACK;
+					else if ((y == 5 || y == 7) && x%2 == 1) {
+						board[x][y] = Piece.BLACK;
+					}
+					else if (y == 6 && x%2 == 0) {
+						board[x][y] = Piece.BLACK;
+					}
 					//Sets empty spots
-					else if ((y == 4 && x%2 == 0) || (y == 3 && x%2 == 1)) board[x][y] = Piece.EMPTY;
+					else if ((y == 4 && x%2 == 0) || (y == 3 && x%2 == 1)) {
+						board[x][y] = Piece.EMPTY;
+					}
 					//Sets remainder of board to outside the playable area
-					else board[x][y] = Piece.OUTSIDE;
+					else {
+						board[x][y] = Piece.OUTSIDE;
+					}
 				}
 			}
 		}
 		
 		//Initializes a board as an empty board -- mainly used for testing
-		public void initEmpty(){
-			for (int x = 0; x < 8; x++)
-				for (int y = 0; y < 8; y++)
-					if (y%2 == x%2)
+		public void initEmpty() {
+			for (int x = 0; x < 8; x++) {
+				for (int y = 0; y < 8; y++) {
+					if (y%2 == x%2) {
 						board[x][y] = Piece.EMPTY;
+					}	
+				}
+			}
 		}
 		
 		//Assigns the specific spots to specific pieces -- used for testing
-		public void test(){
+		public void test() {
 			board[2][2] = Piece.RED;
 			board[3][3] = Piece.BLACK;
 			board[3][5] = Piece.BLACK;
 		}
 	
-		public Board clone(){
+		public Board clone() {
 			Board cloneBoard = new Board();
-			for (int x = 0; x < 8; x++){
-				for (int y = 0; y < 8; y++){
+			for (int x = 0; x < 8; x++) {
+				for (int y = 0; y < 8; y++) {
 					cloneBoard.setPiece(x, y, board[x][y]);
 				}
 			}
@@ -400,34 +546,44 @@ public class Game implements Cloneable{
 		}
 		
 		//Clone constructor
-		public Board(Board inBoard){
-			for (int x = 0; x < 8; x++){
-				for (int y = 0; y < 8; y++){
+		public Board(Board inBoard) {
+			for (int x = 0; x < 8; x++) {
+				for (int y = 0; y < 8; y++) {
 					board[x][y] = inBoard.getPiece(x, y);
 				}
 			}
 		}
 		
 		//Returns the piece at the specified coordinate
-		public Piece getPiece(int x, int y){
+		public Piece getPiece(int x, int y) {
 			return board[x][y];
 		}
 		
 		//Sets the spot at the coordinates to the specified piece
-		public void setPiece(int x, int y, Piece inPiece){
+		public void setPiece(int x, int y, Piece inPiece) {
 			board[x][y] = inPiece;
 		}
 		
 		//Print the board to the terminal
-		public void printBoard(){
-			for (int y = 7; y >= 0 ; y--){
+		public void printBoard() {
+			for (int y = 7; y >= 0 ; y--) {
 				System.out.print("" + y + " ");
-				for (int x = 0; x < 8; x++){
-					if (board[x][y] == Piece.RED_KING) System.out.print("R ");
-					else if (board[x][y] == Piece.BLACK_KING) System.out.print("B ");
-					else if (board[x][y] == Piece.RED) System.out.print("r ");
-					else if (board[x][y] == Piece.BLACK) System.out.print("b ");
-					else System.out.print("  ");
+				for (int x = 0; x < 8; x++) {
+					if (board[x][y] == Piece.RED_KING) {
+						System.out.print("R ");
+					}
+					else if (board[x][y] == Piece.BLACK_KING) {
+						System.out.print("B ");
+					}
+					else if (board[x][y] == Piece.RED) {
+						System.out.print("r ");
+					}
+					else if (board[x][y] == Piece.BLACK) {
+						System.out.print("b ");
+					}
+					else {
+						System.out.print("  ");
+					}
 				}
 				System.out.println();	
 			}
