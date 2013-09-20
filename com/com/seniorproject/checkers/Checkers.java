@@ -7,18 +7,18 @@ import com.seniorproject.checkers.ai.AI_Random;
 
 public class Checkers {
 	public static void main(String[] args) throws IOException, ClassNotFoundException{
-		AI_Probability ai = new AI_Probability('B');
-		AI_Random ai_r;
-		String inMove;
-		boolean isWinner;
-		int count = 0;
-		boolean multiJump;
-		String ai_move;
+		
+		AI_Probability ai = new AI_Probability('B'); 	// AI class
+		AI_Random ai_r;									// AI Random class 
+		String inMove;									// The current move
+		boolean isWinner;								// If the player has won
+		int count = 0;									// The count
+		boolean multiJump;								// If we are performing a multijump
+		String ai_move;									// The AI's move
 		
 		//ai.readFiletoHash();
 		
-		
-		for (int i = 0; i < 10000; i++){
+		for (int i = 0; i < 10000; i++) {
 			Game game = new Game();
 			game.start();
 			
@@ -40,15 +40,15 @@ public class Checkers {
 					if (multiJump){
 						inMove = ai_move.substring(0,4);
 						
-						if(ai_move.length() <= 4){
+						if(ai_move.length() <= 4) {
 							multiJump = false;
 						}
 						ai_move = ai_move.substring(2);
 					}
-					else if (ai.getColor() == game.getCurrentPlayer()){
+					else if (ai.getColor() == game.getCurrentPlayer()) {
 						ai_move = game.getValidMoves().get(ai.makeMove());
 						
-						if (ai_move.length() > 5){
+						if (ai_move.length() > 5) {
 							multiJump = true;
 						}
 						
@@ -71,7 +71,9 @@ public class Checkers {
 			isWinner = game.getCurrentPlayer() != ai.getColor();
 			ai.endGame(isWinner && !ai.isEndless());
 			
-			if (isWinner) count++;
+			if (isWinner) {
+				count++;
+			}
 		}
 		
 		ai.saveHashtoFile();
