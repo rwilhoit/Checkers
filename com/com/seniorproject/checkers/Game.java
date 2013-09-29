@@ -79,6 +79,12 @@ public class Game implements Cloneable {
 		return validMoves;
 	}
 	
+	public Piece getStatusOfBoardLocation(int x, int y) {
+		
+		return this.board.getPiece(x, y);
+	}
+	
+	
 	//Prints out the board
 	public void printBoard(){
 		board.printBoard();

@@ -3,103 +3,153 @@ package com.seniorproject.checkers.ui;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class CheckerBoard extends JFrame {
+import com.seniorproject.checkers.Game;
+import com.seniorproject.checkers.Piece;
+
+public class Checkerboard extends JFrame {
     
-    private static final int WIDTH = 400;
-    private static final int HEIGHT = 300;
-//
-//    private JLabel lengthL, widthL, areaL;
-//    private JTextField lengthTF, widthTF, areaTF;
-//    private JButton calculateB, exitB;
-//    
-//  //Button handlers:
-//    private CalculateButtonHandler cbHandler;
-//    private ExitButtonHandler ebHandler;
-
-
-//	private JFrame frame = new JFrame();
-	
-	
-	
-//	public CheckerBoard() {
-	    //ImagePanel panel = new ImagePanel(new ImageIcon("checkerboard.png").getImage());
-	    
-//        lengthL = new JLabel("Enter the length: ", SwingConstants.RIGHT);
-//        widthL = new JLabel("Enter the width: ", SwingConstants.RIGHT);
-//        areaL = new JLabel("Area: ", SwingConstants.RIGHT);
-//
-//        lengthTF = new JTextField(10);
-//        widthTF = new JTextField(10);
-//        areaTF = new JTextField(10);
-//
-//        //Specify handlers for each button and add (register) ActionListeners to each button.
-//        calculateB = new JButton("Calculate");
-//        cbHandler = new CalculateButtonHandler();
-//        calculateB.addActionListener(cbHandler);
-//        exitB = new JButton("Exit");
-//        ebHandler = new ExitButtonHandler();
-//        exitB.addActionListener(ebHandler);
-//
-//        setTitle("Sample Title: Area of a Rectangle");
-//        Container pane = getContentPane();
-//        pane.setLayout(new GridLayout(4, 2));
-//
-//        //Add things to the pane in the order you want them to appear (left to right, top to bottom)
-//        pane.add(lengthL);
-//        pane.add(lengthTF);
-//        pane.add(widthL);
-//        pane.add(widthTF);
-//        pane.add(areaL);
-//        pane.add(areaTF);
-//        pane.add(calculateB);
-//        pane.add(exitB);
-//
-//        setSize(WIDTH, HEIGHT);
-//        setVisible(true);
-//        setDefaultCloseOperation(EXIT_ON_CLOSE);
-//	}
-//
-//    private class CalculateButtonHandler implements ActionListener
-//    {
-//        public void actionPerformed(ActionEvent e)
-//        {
-//            double width, length, area;
-//
-//            length = Double.parseDouble(lengthTF.getText()); //We use the getText & setText methods to manipulate the data entered into those fields.
-//            width = Double.parseDouble(widthTF.getText());
-//            area = length * width;
-//
-//            areaTF.setText("" + area);
-//        }
-//    }
-//
-//    public class ExitButtonHandler implements ActionListener
-//    {
-//        public void actionPerformed(ActionEvent e)
-//        {
-//            System.exit(0);
-//        }
-//    }
-
-	
-	public static void main(String[] args) throws IOException {
-		
+    private static final double PIECE_DIMENSION = 111.875;
+    private static Game game;
+    private static Point selectedLocation;
+        
+    public void setupBoard() {
 	    ImagePanel panel = new ImagePanel(new ImageIcon("checkerboard.png").getImage());
+	    this.getContentPane().add(panel);
+	    this.pack();
+	    this.setVisible(true);
+    }
 
-	    JFrame frame = new JFrame();
-	    frame.getContentPane().add(panel);
-	    frame.pack();
-	    frame.setVisible(true);
-		
-		//new CheckerBoard();	
+    public void setMouseListener() {
+		// Setup the mouse listeners
+	    this.addMouseListener(new MouseListener() {
+	    
+	    	@Override
+	    	public void mouseClicked(MouseEvent event)
+	    	{
+	    		int selectedX = (int)Math.ceil((event.getPoint().x/PIECE_DIMENSION));
+	    		int selectedY = (int)Math.ceil((event.getPoint().y/PIECE_DIMENSION));	    		
+	    		
+	    		// If selected location is in bounds
+	    		if(selectedLocationIsInBounds(selectedX,selectedY)) {
+	    			// Check if we have already selected a piece
+	    			if(selectedLocation != null) {
+	    				// If we have selected a piece see 
+	    				//if the new location we have selected is the location of a legal move
+	    				if(true) {
+	    					game.makeMove(selectedLocation.x, selectedLocation.y, selectedX, selectedY);
+	    					
+	    					// Redraw the board
+	    				}
+	    				
+	    			} 
+	    			else {
+	    				selectedLocation = new Point(selectedX,selectedY);
+	    			}
+	    		}
+	    		
+	    		
+	    		
+	    		//game.selectPiece(selectedLocation);
+	    		//game.makeMove(0,0,(int)Math.ceil((event.getPoint().x/111.875)),(int)Math.ceil((event.getPoint().y/111.875)));	    		
+	    		System.out.println((int)Math.ceil((event.getPoint().x/111.875)) + "," + (int)Math.ceil((event.getPoint().y/111.875)));
+	    	}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+	    });
+    }
+	
+    public void drawPieces(Game game) {
+    	// Draw the board based on the pieces
+    	System.out.println(game.serializeBoard('r'));
+    }
+    
+    public void drawBoard(Game game) {
+	    this.setupBoard();
+	    this.drawPieces(game);
+    }
+    
+    public boolean selectedLocationIsInBounds(int selectedX, int selectedY) {
+    	
+    	boolean locationIsInBounds = true;
+    	
+    	if(selectedX < 1 || selectedX > 8 || selectedY < 1 || selectedY > 8) {
+    		locationIsInBounds = false;
+    	}
+    	else {
+    		locationIsInBounds = true;
+    	}
+    	
+		return false;
+    }
+    
+    public void selectBoardLocation(int x, int y) {
+    	// Check the board location
+    	Piece piece = game.getStatusOfBoardLocation(x, y);
+    	// EMPTY, RED, RED_KING, BLACK, BLACK_KING, OUTSIDE
+    	if(piece == Piece.EMPTY) {
+    		
+    	} 
+    	else if(piece == Piece.RED || piece == Piece.BLACK || piece == Piece.BLACK_KING || piece == Piece.RED_KING) {
+    		
+    	}
+    	else if(piece == Piece.OUTSIDE) {
+    		// Selected outside or something
+    	}
+    	else {
+    		// Selected outside or something
+    	}
+    	
+    	// Calls the mouse listener. If there is a piece there already then do nothing. 
+    	
+    	// If a piece has been selected then move the selected piece to the new spot
+    	
+    	// Null out selected piece
+    	selectedLocation= null;
+    }
+    
+    public void selectBoardPiece(int x, int y) {
+    	selectedLocation = new Point(x,y);
+    }
+    
+	public static void main(String[] args) throws IOException {
+	
+	    Checkerboard checkerboard = new Checkerboard();
+	    checkerboard.setMouseListener();
+	    game = new Game();
+	    checkerboard.drawBoard(game);
+	    
+
 	}
 }
 
@@ -118,11 +168,12 @@ class ImagePanel extends JPanel {
     setPreferredSize(size);
     setMinimumSize(size);
     setMaximumSize(size);
-    //setSize(size);
+    setSize(size);
     setLayout(null);
   }
 
   public void paintComponent(Graphics g) {
+	super.paintComponent(g);
     g.drawImage(img, 0, 0, null);
   }
 
