@@ -29,8 +29,7 @@ public class Checkerboard extends JFrame {
 	int xAdjustment;
 	int yAdjustment;
 	
-    private static double PIECE_DIMENSION = 111.75;
-    private static String CHECKERBOARD = "checkerboard.png";
+    private static double PIECE_DIMENSION = 75;
     private static String RED_CHECKER = "red_checker.png";
     private static String BLACK_CHECKER = "black_checker.png";
     private static String RED_KING = "red_king.png";
@@ -45,28 +44,74 @@ public class Checkerboard extends JFrame {
 	    	@Override
 	    	public void mouseClicked(MouseEvent event)
 	    	{
-	    		int selectedX = (int)Math.ceil((event.getPoint().x/PIECE_DIMENSION));
-	    		int selectedY = (int)Math.ceil((event.getPoint().y/PIECE_DIMENSION));	    		
+	    		int selectedX = (int)Math.ceil((event.getPoint().x/PIECE_DIMENSION)) - 1; // (Subtract 1 to compensate for array index)
+	    		int selectedY = (int)Math.ceil((event.getPoint().y/PIECE_DIMENSION)) - 1;	    		
 	    		System.out.println(selectedX + "," + selectedY);
 	    		
-	    		// If selected location is in bounds
-	    		if(selectedLocationIsInBounds(selectedX,selectedY)) {
-	    			System.out.println("Location was in bounds and selectedLocation is " + selectedLocation);
-	    			// Check if we have already selected a piece
-	    			if(selectedLocation != null) {
-	    				// If we have then make the move and redraw the board
-	    				game.makeMove(selectedLocation.x, selectedLocation.y, selectedX, selectedY);
-	    				drawBoard(game);
-	    				selectedLocation = null;
-	    			}	
-	    			else {
-		    			selectedLocation = new Point(selectedX,selectedY);
-	    			}
-	    		} 
+	    		if(selectedLocation == null && selectedLocationIsEmpty(selectedX,selectedY)) {
+	    			System.out.println("Selected an empty location");
+	    		}
+	    		else if(selectedLocation == null && validatePieceSelection(selectedX,selectedY)) {
+	    			selectedLocation = new Point(selectedX,selectedY);
+	    			System.out.println("Selected a " + game.getPlayerForPiece(selectedLocation.x, selectedLocation.y) + " piece with location: " + selectedLocation);
+	    		}
+	    		else if(validateMoveSelection(selectedX,selectedY)) {
+    				game.makeMove(selectedLocation.x, selectedLocation.y, selectedX, selectedY);
+	    			game.printBoard();
+	    			drawBoard(game);
+	    			//redrawBoard(game);
+
+    				System.out.println("Setting selectedLocation back to null");
+    				selectedLocation = null;	
+	    		}
 	    		else {
-	    			System.out.println("Location was out of bounds");
-	    		}	    		
+	    			// Else nothing
+	    		}
 	    	}
+
+			private boolean selectedLocationIsEmpty(int selectedX, int selectedY) {
+				if(selectedLocationIsInBounds(selectedX,selectedY) && !pieceExistsInSelectedLocation(selectedX,selectedY)) {
+					return true;
+				}
+				return false;
+			}
+
+			private boolean validateMoveSelection(int selectedX, int selectedY) {
+				return (!(pieceExistsInSelectedLocation(selectedX,selectedY)) && selectedLocationIsInBounds(selectedX,selectedY));
+			}
+
+			private boolean validatePieceSelection(int selectedX, int selectedY) {
+				if(selectedLocationIsInBounds(selectedX,selectedY) && pieceExistsInSelectedLocation(selectedX,selectedY) && selectedPieceIsAlly(selectedX,selectedY)) {
+					return true;
+				}
+				
+				return false;
+			}
+
+			private boolean selectedPieceIsAlly(int selectedX, int selectedY) {
+				
+				//Checks the start piece is for the correct player
+				System.out.println("Checking if the move is valid, the current player is: " + game.getCurrentPlayer());
+				if(((game.getStatusOfBoardLocation(selectedX, selectedY) == Piece.BLACK || 
+					 game.getStatusOfBoardLocation(selectedX, selectedY) == Piece.BLACK_KING) &&
+				   				  				 game.getCurrentPlayer() == 'B') ||
+				   ((game.getStatusOfBoardLocation(selectedX, selectedY) == Piece.RED || 
+				   	 game.getStatusOfBoardLocation(selectedX, selectedY) == Piece.RED_KING) &&
+				   	 							 game.getCurrentPlayer() == 'R')) {
+					
+					return true;
+				}
+									
+				return false;
+			}
+
+			private boolean pieceExistsInSelectedLocation(int selectedX, int selectedY) {
+				if(game.getStatusOfBoardLocation(selectedX, selectedY) == null || game.getStatusOfBoardLocation(selectedX, selectedY) == Piece.EMPTY || game.getStatusOfBoardLocation(selectedX, selectedY) == Piece.OUTSIDE) {
+					System.out.println("Piece did not exist at location: " + selectedX + "," + selectedY);
+					return false;
+				}
+				return true;
+			}
 
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
@@ -118,12 +163,10 @@ public class Checkerboard extends JFrame {
 				pieceAtLocation = game.getStatusOfBoardLocation(j,i);
 				if(pieceAtLocation == Piece.BLACK) {
 					// Draw a black piece
-					System.out.println("Drawing a black piece");
 					drawPieceAtLocation(i,j,BLACK_CHECKER);
 				}
 				else if(pieceAtLocation == Piece.RED) {
 					// Draw a red piece
-					System.out.println("Drawing a red piece");
 					drawPieceAtLocation(i,j,RED_CHECKER);
 				}
 				else if(pieceAtLocation == Piece.BLACK_KING) {
@@ -135,17 +178,16 @@ public class Checkerboard extends JFrame {
 					drawPieceAtLocation(i,j,RED_KING);
 				}
 				else {
-					System.out.println("Empty or out of bounds location" + pieceAtLocation);
-					// Else draw nothing
+					// Empty or out of bounds location
 				}
     		}
     	}
     }
     
     private void drawPieceAtLocation(int x, int y, String pieceType) {
+    	System.out.println("Drawing a piece at x: " + x + " y: " + y);
     	int componentLocation = x*8 + y;
-    	System.out.println("x = " + x + " y = " + y);
-    	System.out.println("Component location: " + componentLocation);
+    	
     	// Draw the piece at the location 
 		JLabel piece = new JLabel(new ImageIcon(pieceType));
 		
@@ -157,11 +199,13 @@ public class Checkerboard extends JFrame {
 	public void drawBoard(Game game) {
 		this.setupGameWindow();
 		this.redrawBoard(game);
+		System.out.println("Finished drawing board");
     }
     
 	private void redrawBoard(Game game) {
 	    this.setupBoard();
 	    this.drawPieces(game);
+	    System.out.println("Redrew board");
 	}
     private void setupGameWindow() {
     	layeredPane = new JLayeredPane();
@@ -179,12 +223,12 @@ public class Checkerboard extends JFrame {
     }
 
 	public boolean selectedLocationIsInBounds(int selectedX, int selectedY) {    	
-    	if(selectedX < 1 || selectedX > 8 || selectedY < 1 || selectedY > 8) {
+    	if(selectedX < 0 || selectedX > 7 || selectedY < 0 || selectedY > 7) {
+    		System.out.println("Selected location is out of bounds");
     		return false;
     	}
-    	else {
-    		return true;
-    	}
+    	System.out.println("Selected location is in bounds");
+    	return true;
     }
     
     public void selectBoardPiece(int x, int y) {
