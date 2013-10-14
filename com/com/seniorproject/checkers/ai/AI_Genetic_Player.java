@@ -10,23 +10,34 @@ import com.seniorproject.checkers.Piece;
 public class AI_Genetic_Player {
 	//The game currently being played
 	private Game game;
-	private float weight_numPieces;
+
+	/*
+	 * Array of the wieghts to be used
+	 * 
+	 * 0. Number of regular pieces
+	 * 1. Number of kings
+	 * 2. Number of possible moves
+	 * 3. Number of possible moves that avoid a threat(possible jump)
+	 * 4. Number of pieces along the sides
+	 * 5. Number of piecse along the bottom
+	 * 6. Number of pieces next to an ally
+	 */
+	private float[] weights;
 	
 	//A weight score array corresponding to the current valid move list
 	private ArrayList<Float> weightedScore;
 	
-	//Empty constructor
-	public AI_Genetic_Player() {
-		// Empty constructor
-	}
-	
 	//Basic game constructor
-	public AI_Genetic_Player(float weight_numPieces){
-		this.weight_numPieces = weight_numPieces;
+	public AI_Genetic_Player(float[] weights){
+		this.weights = weights;
 	}
 	
 	public void setGame(Game game){
 		this.game = game;
+	}
+	
+	public float[] getWeights(){
+		return weights;
 	}
 	
 	//Returns the index within the current validMoves array of the desired move
@@ -50,15 +61,6 @@ public class AI_Genetic_Player {
 	 * Sets all the scores for all the valid moves for the current player
 	 * Does this by cloning the board and performing the move and adding the scores
 	 * from the resultant board
-	 * 
-	 * Score is based on a number of attributes
-	 * 1. Number of regular pieces
-	 * 2. Number of kings
-	 * 3. Number of possible moves
-	 * 4. Number of possible moves that avoid a threat(possible jump)
-	 * 5. Number of pieces along the sides
-	 * 6. Number of piecse along the bottom
-	 * 7. Number of pieces next to an ally
 	 */
 	private void setWeightedScores(){
 		weightedScore = new ArrayList<Float>();
@@ -105,7 +107,7 @@ public class AI_Genetic_Player {
 			}
 		}
 		
-		return weight_numPieces * (float)numPieces;
+		return weights[0] * (float)numPieces;
 	}
 	
 }
