@@ -44,6 +44,7 @@ public class Game implements Cloneable {
 		this.board = board.clone();
 		this.currentPlayer = currentPlayer;
 		
+		this.validMoves = new ArrayList<String>();
 		for (int i = 0; i < validMoves.size(); i++){
 			this.validMoves.add(validMoves.get(i));
 		}
@@ -92,10 +93,11 @@ public class Game implements Cloneable {
 		if (index < 0 || index >= validMoves.size()){
 			return false;
 		}
-		int startX = Integer.getInteger(validMoves.get(index).substring(1,2));
-		int	startY = Integer.getInteger(validMoves.get(index).substring(2,3));
-		int endX = Integer.getInteger(validMoves.get(index).substring(3,4));
-		int	endY = Integer.getInteger(validMoves.get(index).substring(4,5));
+		
+		int startX = Integer.parseInt(validMoves.get(index).substring(1,2));
+		int	startY = Integer.parseInt(validMoves.get(index).substring(2,3));
+		int endX = Integer.parseInt(validMoves.get(index).substring(3,4));
+		int	endY = Integer.parseInt(validMoves.get(index).substring(4,5));
 		
 		return makeMove(startX, startY, endX, endY);
 	}

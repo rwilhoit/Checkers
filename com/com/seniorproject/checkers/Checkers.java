@@ -2,12 +2,27 @@ package com.seniorproject.checkers;
 
 import java.io.IOException;
 
-import com.seniorproject.checkers.ai.AI_Probability;
-import com.seniorproject.checkers.ai.AI_Random;
+import com.seniorproject.checkers.ai.AI_Genetic;
 
 public class Checkers {
 	public static void main(String[] args) throws IOException, ClassNotFoundException{
+		AI_Genetic ai_genetic = new AI_Genetic();
 		
+		for (int i = 0; i < 1000; i++){
+			float[] weight = ai_genetic.getCurrentWeights();
+			
+			if (i%100 == 0){
+				for (int j = 0; j < ai_genetic.getNumWeights(); j++){
+					System.out.println("Weight " + j + ": " + weight[j]);
+				}
+				System.out.println();
+			}
+				
+			
+			ai_genetic.run();
+		}
+
+		/*
 		AI_Probability ai = new AI_Probability('B'); 	// AI class
 		AI_Random ai_r;									// AI Random class 
 		String inMove;									// The current move
@@ -78,5 +93,6 @@ public class Checkers {
 		
 		ai.saveHashtoFile();
 		System.out.println("Total wins: " + count);
+		*/
 	}
 }

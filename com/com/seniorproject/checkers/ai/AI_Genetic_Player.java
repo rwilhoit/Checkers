@@ -28,8 +28,12 @@ public class AI_Genetic_Player {
 	private ArrayList<Float> weightedScore;
 	
 	//Basic game constructor
-	public AI_Genetic_Player(float[] weights){
-		this.weights = weights;
+	public AI_Genetic_Player(float[] weights, int numTypeWeights){
+		this.weights = new float[numTypeWeights];
+		
+		for (int i = 0 ; i < numTypeWeights; i++){
+			this.weights[i] = weights[i];
+		}
 	}
 	
 	public void setGame(Game game){
@@ -42,11 +46,13 @@ public class AI_Genetic_Player {
 	
 	//Returns the index within the current validMoves array of the desired move
 	public int makeMove() {
+		//Sets the score for each move
 		setWeightedScores();
 		
 		float max = Float.MIN_VALUE;
 		int index = -1;
 		
+		//Return the move with the highest code
 		for (int i = 0; i < weightedScore.size(); i++){
 			if (weightedScore.get(i) > max){
 				max = weightedScore.get(i);
@@ -101,8 +107,8 @@ public class AI_Genetic_Player {
 		
 		for (int i = 0; i < 8; i++){
 			for (int j = 0; j < 8; j++){
-				if(board[i][j] == Piece.RED && currentPlayer == 'R'
-					|| board[i][j] == Piece.BLACK && currentPlayer == 'B')
+				if((board[i][j] == Piece.RED && currentPlayer == 'R')
+					|| (board[i][j] == Piece.BLACK && currentPlayer == 'B'))
 					numPieces ++;
 			}
 		}
