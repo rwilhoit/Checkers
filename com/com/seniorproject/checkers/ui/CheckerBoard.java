@@ -2,10 +2,9 @@ package com.seniorproject.checkers.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -22,12 +21,12 @@ import com.seniorproject.checkers.Piece;
 
 public class Checkerboard extends JFrame {
 	
-	JLayeredPane layeredPane;
-	JPanel checkerboardPanel;  
-	JLabel checkerPiece;
-	static Dimension boardSize = new Dimension(600, 600);
-	int xAdjustment;
-	int yAdjustment;
+	// Set visible and invisible
+    static Checkerboard checkerboard;						// This instance of the class
+	JLayeredPane layeredPane;								// The window the board is drawn in
+	JPanel checkerboardPanel;  								// Each square in the board
+	JLabel checkerPiece;									// Each checker piece
+	static Dimension boardSize = new Dimension(600, 600);	// The board dimension
 	
     private static double PIECE_DIMENSION = 75;
     private static String RED_CHECKER = "red_checker.png";
@@ -35,8 +34,7 @@ public class Checkerboard extends JFrame {
     private static String RED_KING = "red_king.png";
     private static String BLACK_KING = "black_king.png";
     static Game game;
-    Point selectedLocation = null;
-        
+    Point selectedLocation = null;     
     public void setMouseListener() {
 		// Setup the mouse listeners
 	    this.addMouseListener(new MouseListener() {
@@ -58,11 +56,9 @@ public class Checkerboard extends JFrame {
 	    		else if(validateMoveSelection(selectedX,selectedY)) {
     				game.makeMove(selectedLocation.x, selectedLocation.y, selectedX, selectedY);
 	    			game.printBoard();
-	    			drawBoard(game);
-	    			//redrawBoard(game);
-
-    				System.out.println("Setting selectedLocation back to null");
-    				selectedLocation = null;	
+	    			
+    				selectedLocation = null;	// We are done with the selected location
+	    			updateBoard(game);
 	    		}
 	    		else {
 	    			// Else nothing
@@ -113,6 +109,8 @@ public class Checkerboard extends JFrame {
 				return true;
 			}
 
+
+			
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
 				// TODO Auto-generated method stub
@@ -141,10 +139,11 @@ public class Checkerboard extends JFrame {
 	
     public void drawPieces(Game game) {
     	 
+    	// Add and color the squares on the board
     	for (int i = 0; i < 64; i++) {
     		  JPanel square = new JPanel( new BorderLayout() );
     		  checkerboardPanel.add(square);
-    		 
+
     		  // Color the pieces
     		  int row = (i / 8) % 2;
     		  if (row == 0) {
@@ -155,57 +154,80 @@ public class Checkerboard extends JFrame {
     		  }	  
     	 }
     	
-    	Piece pieceAtLocation;
-    	
-    	 // Draw pieces based on where they are on the board
-    	for(int i=0;i<8;i++) {
-    		for(int j=0;j<8;j++) {
-				pieceAtLocation = game.getStatusOfBoardLocation(j,i);
-				if(pieceAtLocation == Piece.BLACK) {
-					// Draw a black piece
-					drawPieceAtLocation(i,j,BLACK_CHECKER);
-				}
-				else if(pieceAtLocation == Piece.RED) {
-					// Draw a red piece
-					drawPieceAtLocation(i,j,RED_CHECKER);
-				}
-				else if(pieceAtLocation == Piece.BLACK_KING) {
-					// Draw a black king
-					drawPieceAtLocation(i,j,BLACK_KING);
-				}
-				else if(pieceAtLocation == Piece.RED_KING) {
-					// Draw a red 
-					drawPieceAtLocation(i,j,RED_KING);
-				}
-				else {
-					// Empty or out of bounds location
-				}
-    		}
-    	}
+    	// Draw the default pieces on the board
+    	this.updateBoard(game);
+
     }
     
-    private void drawPieceAtLocation(int x, int y, String pieceType) {
-    	System.out.println("Drawing a piece at x: " + x + " y: " + y);
-    	int componentLocation = x*8 + y;
-    	
-    	// Draw the piece at the location 
-		JLabel piece = new JLabel(new ImageIcon(pieceType));
+    private void updateBoard(Game game) {
+
+    	JLabel checkerLabel;
+    	JPanel panel;
+		int componentLocation;
+		Piece statusOfBoardAtLocation;
 		
-		// Figure out how to write the right number component
-		JPanel panel = (JPanel)checkerboardPanel.getComponent(componentLocation);
-		panel.add(piece);
-	}
+		
+		for(int i=0;i<8;i++) {
+			for(int j=0;j<8;j++) {
+				statusOfBoardAtLocation = game.getStatusOfBoardLocation(j,i);
+
+				// Remove pieces from the UI
+				if(pieceExistsAtLocationOnUI(j,i) && (statusOfBoardAtLocation == Piece.OUTSIDE || statusOfBoardAtLocation == Piece.EMPTY)) {
+					// Remove the piece from the UI 
+					componentLocation = getComponentIndexForLocation(j,i);
+					panel = (JPanel)checkerboardPanel.getComponent(componentLocation);			// Get the component
+					panel.removeAll();															// Delete the piece
+				}
+				
+				// Add pieces to the UI
+				if(!pieceExistsAtLocationOnUI(j,i) && statusOfBoardAtLocation == Piece.RED) {
+					componentLocation = getComponentIndexForLocation(j,i);
+					panel = (JPanel)checkerboardPanel.getComponent(componentLocation);			// Get the component
+					checkerLabel = new JLabel(new ImageIcon(RED_CHECKER));						// Get red piece image icon
+					panel.add(checkerLabel);
+					panel.revalidate();
+					panel.repaint();
+				}
+				else if(!pieceExistsAtLocationOnUI(j,i) && statusOfBoardAtLocation == Piece.BLACK) {
+
+					componentLocation = getComponentIndexForLocation(j,i);
+					panel = (JPanel)checkerboardPanel.getComponent(componentLocation);			// Get the component
+					checkerLabel = new JLabel(new ImageIcon(BLACK_CHECKER));					// Get black piece image icon
+					panel.add(checkerLabel);
+					panel.revalidate();
+					panel.repaint();
+				}
+				else if(!pieceExistsAtLocationOnUI(j,i) && statusOfBoardAtLocation == Piece.RED_KING) {
+					componentLocation = getComponentIndexForLocation(j,i);
+					panel = (JPanel)checkerboardPanel.getComponent(componentLocation);			// Get the component
+					checkerLabel = new JLabel(new ImageIcon(RED_KING));							// Get red king piece image icon
+					panel.add(checkerLabel);
+				}
+				else if(!pieceExistsAtLocationOnUI(j,i) && game.getStatusOfBoardLocation(j,i) == Piece.BLACK_KING) {
+					componentLocation = getComponentIndexForLocation(j,i);
+					panel = (JPanel)checkerboardPanel.getComponent(componentLocation);			// Get the component	
+					checkerLabel = new JLabel(new ImageIcon(BLACK_KING));						// Get black king piece image icon
+					panel.add(checkerLabel);
+					panel.revalidate();
+					panel.repaint();
+				}
+				else {
+					// Else nothing
+				} 
+			}
+		}
+		
+		checkerboardPanel.repaint();
+    }
 
 	public void drawBoard(Game game) {
 		this.setupGameWindow();
 		this.redrawBoard(game);
-		System.out.println("Finished drawing board");
     }
     
 	private void redrawBoard(Game game) {
 	    this.setupBoard();
 	    this.drawPieces(game);
-	    System.out.println("Redrew board");
 	}
     private void setupGameWindow() {
     	layeredPane = new JLayeredPane();
@@ -221,7 +243,7 @@ public class Checkerboard extends JFrame {
     	checkerboardPanel.setPreferredSize( boardSize );
     	checkerboardPanel.setBounds(0, 0, boardSize.width, boardSize.height);
     }
-
+    
 	public boolean selectedLocationIsInBounds(int selectedX, int selectedY) {    	
     	if(selectedX < 0 || selectedX > 7 || selectedY < 0 || selectedY > 7) {
     		System.out.println("Selected location is out of bounds");
@@ -235,42 +257,32 @@ public class Checkerboard extends JFrame {
     	selectedLocation = new Point(x,y);
     }
     
+	public int getComponentIndexForLocation(int locationX, int locationY) { 
+		return locationY*8 + locationX;
+	}
+	
+	public boolean pieceExistsAtLocationOnUI(int x, int y) {
+    	int componentLocation = getComponentIndexForLocation(x,y);
+    	JPanel panel = (JPanel)checkerboardPanel.getComponent(componentLocation);
+    	if (panel != null) {
+    		if(panel.getComponentCount() > 0) { 
+    			return true;
+    		}    		
+    	}
+		
+		return false;
+	}
+
 	public static void main(String[] args) throws IOException {
-	    Checkerboard checkerboard = new Checkerboard();
+	    checkerboard = new Checkerboard();
 	    checkerboard.setMouseListener();
 	    game = new Game();
 		game.start();
-	    checkerboard.drawBoard(game);
-	    checkerboard.setDefaultCloseOperation(DISPOSE_ON_CLOSE );
+	    checkerboard.drawBoard(game);	    
+	    checkerboard.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	    checkerboard.pack();
 	    checkerboard.setResizable(true);
 	    checkerboard.setLocationRelativeTo(null);
 	    checkerboard.setVisible(true);
 	}
-}
-
-class ImagePanel extends JPanel {
-
-  private Image img;
-
-  public ImagePanel(String img) {
-    this(new ImageIcon(img).getImage());
-  }
-
-  public ImagePanel(Image img) {
-    this.img = img;
-    
-    Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
-    setPreferredSize(size);
-    setMinimumSize(size);
-    setMaximumSize(size);
-    setSize(size);
-    setLayout(null);
-  }
-
-  public void paintComponent(Graphics g) {
-	super.paintComponent(g);
-    g.drawImage(img, 0, 0, null);
-  }
-
 }

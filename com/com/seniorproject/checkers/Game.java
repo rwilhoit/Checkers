@@ -92,7 +92,7 @@ public class Game implements Cloneable {
 	}
 	
 	public Piece getStatusOfBoardLocation(int x, int y) {
-		return this.board.getPiece(x, y);
+		return this.board.getPiece(x,y);
 	}
 	
 	
