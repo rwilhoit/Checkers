@@ -79,6 +79,23 @@ public class Game implements Cloneable {
 		return validMoves;
 	}
 	
+	public char getPlayerForPiece(int x, int y) {
+		//EMPTY, RED, RED_KING, BLACK, BLACK_KING, OUTSIDE
+		char player = 'e';
+		if(this.getStatusOfBoardLocation(x, y) == Piece.RED || this.getStatusOfBoardLocation(x, y) == Piece.RED_KING) {
+			player = 'R';
+		}
+		else if(this.getStatusOfBoardLocation(x, y) == Piece.BLACK ||  this.getStatusOfBoardLocation(x, y) == Piece.BLACK_KING) {
+			player = 'B';
+		}
+		return player;
+	}
+	
+	public Piece getStatusOfBoardLocation(int x, int y) {
+		return this.board.getPiece(x,y);
+	}
+	
+	
 	//Prints out the board
 	public void printBoard(){
 		board.printBoard();
@@ -91,17 +108,7 @@ public class Game implements Cloneable {
 	
 	//Performs the given move returning true if successful
 	public boolean makeMove(int startX, int startY, int endX, int endY){
-		//Checks the start piece is for the correct player
-		if(((board.getPiece(startX, startY) == Piece.BLACK || 
-				board.getPiece(startX, startY) == Piece.BLACK_KING) &&
-				currentPlayer == 'R') ||
-				((board.getPiece(startX, startY) == Piece.RED || 
-				board.getPiece(startX, startY) == Piece.RED_KING) &&
-				currentPlayer == 'B')) {
-			// Illegal move
-			return false;
-		}
-			
+		
 		//String representation of the first move
 		String firstMove = "" + startX + startY + endX + endY;
 		
@@ -110,6 +117,8 @@ public class Game implements Cloneable {
 		//To speed up the search, it first checks if the validMoves list contains a jump
 		//If it does have a jump, then the list for sure won't have the single move
 		if (Math.abs(endX - startX) == 1 && validMoves.get(0).charAt(0) != 't' && validMoves.contains("f" + firstMove)){
+			
+			System.out.println("Playing move");
 			//First copy the original piece to the new spot
 			board.setPiece(endX, endY, checkKing(endY, board.getPiece(startX, startY)));
 			//Then set the original spot to empty
@@ -566,7 +575,8 @@ public class Game implements Cloneable {
 		
 		//Print the board to the terminal
 		public void printBoard() {
-			for (int y = 7; y >= 0 ; y--) {
+			System.out.println("  0 1 2 3 4 5 6 7");
+			for (int y = 0; y < 8; y++) {
 				System.out.print("" + y + " ");
 				for (int x = 0; x < 8; x++) {
 					if (board[x][y] == Piece.RED_KING) {
@@ -587,7 +597,6 @@ public class Game implements Cloneable {
 				}
 				System.out.println();	
 			}
-			System.out.println("  0 1 2 3 4 5 6 7");
 		}
 	}
 }
