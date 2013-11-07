@@ -44,6 +44,7 @@ public class Game implements Cloneable {
 		this.board = board.clone();
 		this.currentPlayer = currentPlayer;
 		
+		this.validMoves = new ArrayList<String>();
 		for (int i = 0; i < validMoves.size(); i++){
 			this.validMoves.add(validMoves.get(i));
 		}
@@ -58,14 +59,6 @@ public class Game implements Cloneable {
 	public void start(){
 		board.init();
 		currentPlayer = 'R';
-		setValidMoves();
-	}
-	
-	//Starts the game using the test spots
-	public void test(){
-		board.initEmpty();
-		currentPlayer = 'R';
-		board.test();
 		setValidMoves();
 	}
 	
@@ -101,11 +94,33 @@ public class Game implements Cloneable {
 		board.printBoard();
 	}
 	
+	//Returns a two array of the current board
+	public Piece[][] getBoard(){
+		return board.getBoard();
+	}
+	
 	//Prints out true that the current player has lost
 	public boolean hasLost(){
 		return validMoves.size() == 0;
 	}
 	
+	//Performs the indexed move in the current valid move list
+	//Best used by the AI
+	public boolean makeMove(int index){
+		if (index < 0 || index >= validMoves.size()){
+			return false;
+		}
+		
+		int startX = Integer.parseInt(validMoves.get(index).substring(1,2));
+		int	startY = Integer.parseInt(validMoves.get(index).substring(2,3));
+		int endX = Integer.parseInt(validMoves.get(index).substring(3,4));
+		int	endY = Integer.parseInt(validMoves.get(index).substring(4,5));
+		
+		return makeMove(startX, startY, endX, endY);
+	}
+	
+	//DEPRECATED
+	//Used makeMove(int index) instead 
 	//Performs the given move returning true if successful
 	public boolean makeMove(int startX, int startY, int endX, int endY){
 		
@@ -188,98 +203,14 @@ public class Game implements Cloneable {
 	}
 
 	//Performs the given move returning true if successful
-	public boolean makeMoveForString(String potentialMove) {
+	public boolean makeMoveForString(String move) {
 		
-		int startX = new Integer(potentialMove.substring(1,2));
-		int startY = new Integer(potentialMove.substring(2,3));
-		int endX = new Integer(potentialMove.substring(3,4));
-		int endY = new Integer(potentialMove.substring(4,5));
+		int startX = new Integer(move.substring(1,2));
+		int startY = new Integer(move.substring(2,3));
+		int endX = new Integer(move.substring(3,4));
+		int endY = new Integer(move.substring(4,5));
 		
-		//Checks the start piece is for the correct player
-		if(((board.getPiece(startX, startY) == Piece.BLACK || 
-				board.getPiece(startX, startY) == Piece.BLACK_KING) &&
-				currentPlayer == 'R') ||
-				((board.getPiece(startX, startY) == Piece.RED || 
-				board.getPiece(startX, startY) == Piece.RED_KING) &&
-				currentPlayer == 'B')) {
-			// Illegal move
-			return false;
-		}
-			
-		//String representation of the first move
-		String firstMove = "" + startX + startY + endX + endY;
-		
-		//Checks to see if the move is normal single spot move and is valid
-		//If so, perform the move, then switch the player and find the new valid moves
-		//To speed up the search, it first checks if the validMoves list contains a jump
-		//If it does have a jump, then the list for sure won't have the single move
-		if (Math.abs(endX - startX) == 1 && validMoves.get(0).charAt(0) != 't' && validMoves.contains("f" + firstMove)){
-			//First copy the original piece to the new spot
-			board.setPiece(endX, endY, checkKing(endY, board.getPiece(startX, startY)));
-			//Then set the original spot to empty
-			board.setPiece(startX, startY, Piece.EMPTY);
-			//Change the current player
-			currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
-			//Set the valid moves for the new player
-			setValidMoves();
-			
-			return true;
-		}
-		
-		//The rest of the code is for potential jumps
-		//Stores all valid moves that have the inputted first move into reducedValidMoves
-		ArrayList<String> reducedValidMoves = new ArrayList<String>();
-		for (String move: validMoves) {
-			if (move.substring(1, 5).equals(firstMove)) {
-				reducedValidMoves.add(move);
-			}
-		}
-		
-		//If reducedValidMoves has no entry, then the move was not valid
-		if (reducedValidMoves.size() == 0) {
-			return false;
-		}
-		/*
-		 * Checks if the jump was a single jump
-		 * If so, simply perform the jump, change players, and reset validMoves
-		 */
-		else if (reducedValidMoves.get(0).length() == 5){
-			//First copy the original piece to the new spot
-			board.setPiece(endX, endY, checkKing(endY, board.getPiece(startX, startY)));
-			//Then set the original spot to empty
-			board.setPiece(startX, startY, Piece.EMPTY);
-			//Then set the jumped spot to empty
-			board.setPiece((startX + endX)/2, (startY + endY)/2, Piece.EMPTY);
-			//Change the current player
-			currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
-			//Set the valid moves for the new player
-			setValidMoves();
-			return true;
-		}
-		/*
-		 * If the move was a double jump or larger
-		 * Perform the first jump, then remove that first jump
-		 * from all the jump moves in the reducedValidMoves list.
-		 * Finally setValidMoves to be this reducedValidMoves list
-		 */
-		else {
-			//First copy the original piece to the new spot
-			board.setPiece(endX, endY, board.getPiece(startX, startY));
-			//Then set the original spot to empty
-			board.setPiece(startX, startY, Piece.EMPTY);
-			//Then set the jumped spot to empty
-			board.setPiece((startX + endX)/2, (startY + endY)/2, Piece.EMPTY);
-			
-			for(int i = 0; i < reducedValidMoves.size(); i++) {
-				reducedValidMoves.set(i, "t" + reducedValidMoves.get(i).substring(3));
-			}
-			
-			validMoves = reducedValidMoves;
-			
-			return true;
-		}
-		
-		
+		return makeMove(startX, startY, endX, endY);
 	}
 
 	
@@ -495,6 +426,10 @@ public class Game implements Cloneable {
 			// Empty constructor
 		}
 		
+		public Piece[][] getBoard(){
+			return board;
+		}
+		
 		//Initializes the board with starting set up
 		public void init() {
 			for (int x = 0; x < 8; x++) {
@@ -534,13 +469,6 @@ public class Game implements Cloneable {
 					}	
 				}
 			}
-		}
-		
-		//Assigns the specific spots to specific pieces -- used for testing
-		public void test() {
-			board[2][2] = Piece.RED;
-			board[3][3] = Piece.BLACK;
-			board[3][5] = Piece.BLACK;
 		}
 	
 		public Board clone() {
