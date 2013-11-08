@@ -8,7 +8,7 @@ import com.seniorproject.checkers.Piece;
 
 public class AI_Genetic{
 	//Stores the number of variable types used as weights
-	final private int numTypeWeights = 2;
+	final private int numTypeWeights = 3;
 	
 	//Amount to vary the weights by
 	final private float weightVariance = 0.01f;
@@ -37,6 +37,7 @@ public class AI_Genetic{
 	//Used to store the weights of the current parent that the child players are made from
 	//weights[0] = numPieces
 	//weights[1] = numKings
+	//weights[2] = numSide
 	private float[] weights;
 	
 	//Constructors

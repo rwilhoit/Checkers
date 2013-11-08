@@ -14,12 +14,12 @@ public class AI_Genetic_Player {
 	/*
 	 * Array of the wieghts to be used
 	 * 
-	 * 0. Number of regular pieces
-	 * 1. Number of kings
+	 * 0. Number of regular pieces -DONE
+	 * 1. Number of kings -DONE
 	 * 2. Number of possible moves
-	 * 3. Number of possible moves that avoid a threat(possible jump)
-	 * 4. Number of pieces along the sides
-	 * 5. Number of piecse along the bottom
+	 * 3. Number of pieces along the sides
+	 * 4. Number of pieces along the bottom
+	 * 5. Number of possible moves that avoid a threat(possible jump) 
 	 * 6. Number of pieces next to an ally
 	 */
 	private float[] weights;
@@ -93,12 +93,16 @@ public class AI_Genetic_Player {
 			//which we then add to the weightedScore arraylist
 			float totalScore = 0.0f;
 			totalScore += getScore_TotalPieces(gameClone, currentPlayer);
+			totalScore += getScore_TotalKings(gameClone, currentPlayer);
+			totalScore += getScore_TotalSides(gameClone, currentPlayer);
 			
 			weightedScore.add(totalScore);
 		}
 	}
 	
-	//Below here are the all the getScore methods
+	/****************************************
+	 * getScore methods used to total points
+	 ****************************************/
 	
 	//Counts the total pieces not including kings and add the scores
 	private float getScore_TotalPieces(Game game, char currentPlayer){
@@ -114,6 +118,58 @@ public class AI_Genetic_Player {
 		}
 		
 		return weights[0] * (float)numPieces;
+	}
+	
+	//Counts the total kings and add the scores
+	private float getScore_TotalKings(Game game, char currentPlayer){
+		Piece[][] board = game.getBoard();
+		int numKings = 0;
+		
+		for (int i = 0; i < 8; i++){
+			for (int j = 0; j < 8; j++){
+				if((board[i][j] == Piece.RED_KING && currentPlayer == 'R')
+					|| (board[i][j] == Piece.BLACK_KING && currentPlayer == 'B'))
+					numKings ++;
+			}
+		}
+		
+		return weights[1] * (float)numKings;
+	}
+	
+	//Counts the total pieces including kings along the side 
+	private float getScore_TotalSides(Game game, char currentPlayer){
+		Piece[][] board = game.getBoard();
+		int numSide = 0;
+		
+		for (int i = 0; i < 8; i++){
+			//Left side has sides at 0,0 0,2 0,4 and 0,8
+			if(i%2 == 0){
+				if (currentPlayer == 'R'){
+					if(board[0][i] == Piece.RED || board[0][i] == Piece.RED_KING){
+						numSide++;
+					}
+				}
+				else{
+					if(board[0][i] == Piece.BLACK || board[0][i] == Piece.BLACK_KING){
+						numSide++;
+					} 
+				}
+			}
+			else if(i%2 == 1){
+				if (currentPlayer == 'R'){
+					if(board[7][i] == Piece.RED || board[7][i] == Piece.RED_KING){
+						numSide++;
+					}
+				}
+				else{
+					if(board[7][i] == Piece.BLACK || board[7][i] == Piece.BLACK_KING){
+						numSide++;
+					} 
+				}
+			}
+		}
+		
+		return weights[2] * (float)numSide;
 	}
 	
 }
