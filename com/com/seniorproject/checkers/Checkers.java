@@ -71,7 +71,7 @@ public class Checkers {
 						ai_move = ai_move.substring(3);
 					}
 					else {
-						inMove = game.getValidMoves().get(ai_r.makeMove()).substring(1, 5);	
+						inMove = game.getValidMoves().get(ai_r.makeMove()).substring(1,5);	
 					}
 					
 					System.out.println();
