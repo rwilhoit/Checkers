@@ -11,12 +11,10 @@ public class Checkers {
 		for (int i = 0; i < 1000; i++){
 			float[] weight = ai_genetic.getCurrentWeights();
 			
-			if (i%100 == 0){
-				for (int j = 0; j < ai_genetic.getNumWeights(); j++){
-					System.out.println("Weight " + j + ": " + weight[j]);
-				}
-				System.out.println();
+			for (int j = 0; j < ai_genetic.getNumWeights(); j++){
+				System.out.println("Weight " + j + ": " + weight[j]);
 			}
+			System.out.println();
 				
 			
 			ai_genetic.run();

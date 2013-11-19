@@ -8,14 +8,14 @@ import com.seniorproject.checkers.Piece;
 
 public class AI_Genetic{
 	//Stores the number of variable types used as weights
-	final private int numTypeWeights = 3;
+	final private int numTypeWeights = 10;
 	
 	//Amount to vary the weights by
-	final private float weightVariance = 0.01f;
+	final private float weightVariance = 10.0f;
 	
 	//Number of turns to wait for no pieces to change
 	//before a draw is called
-	final private int maxTurn_NoPieceChange = 50;
+	final private int maxTurn_NoPieceChange = 20;
 	
 	//Array of the genetic players
 	//Number of players equals twice the number type of weights
@@ -34,10 +34,6 @@ public class AI_Genetic{
 	//+1 for ties
 	private int[] playerScores;
 	
-	//Used to store the weights of the current parent that the child players are made from
-	//weights[0] = numPieces
-	//weights[1] = numKings
-	//weights[2] = numSide
 	private float[] weights;
 	
 	//Constructors
@@ -46,22 +42,19 @@ public class AI_Genetic{
 		playerScores = new int[numPlayers];
 		weights = new float[numTypeWeights];
 		
-		//Sets all weights to an equal percentage and scores to 0
-		for (int i = 0; i < numTypeWeights; i++){
-			weights[i] = 1.0f/(float)numTypeWeights;
-		}
+		//Preset the weight to what I think they should be because the starting AI is RETARDED
+		weights[0] = 20.0f;
+		weights[1] = 30.0f;
+		weights[2] = 40.0f;
+		weights[3] = 60.0f;
+		weights[4] = 40.0f;
+		weights[5] = 60.0f;
+		weights[6] = -20.0f;
+		weights[7] = 50.0f;
+		weights[8] = 80.0f;
+		weights[9] = 50.0f;
 		
-		for (int i = 0; i < numPlayers; i++){
-			playerScores[i] = 0;
-		}
-	}
-	
-	public AI_Genetic(float weight_numPieces, float weight_numKings){
-		players = new AI_Genetic_Player[numPlayers];
-		playerScores = new int[numPlayers];
 		
-		weights[0] = weight_numPieces;
-		weights[1] = weight_numKings;
 		
 		for (int i = 0; i < numPlayers; i++){
 			playerScores[i] = 0;
@@ -238,7 +231,7 @@ public class AI_Genetic{
 			}
 			
 			//If numTurns_NoPieceChange reaches the max, return -1
-			if (numTurns_NoPieceChange == maxTurn_NoPieceChange){
+			if (numTurns_NoPieceChange >= maxTurn_NoPieceChange){
 				return -1;
 			}
 			
