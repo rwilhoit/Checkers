@@ -14,13 +14,31 @@ public class AI_Genetic_Player {
 	/*
 	 * Array of the wieghts to be used
 	 * 
-	 * 0. Number of regular pieces -DONE
+	 * 0. Number of pawns -DONE
 	 * 1. Number of kings -DONE
-	 * 2. Number of possible moves
-	 * 3. Number of pieces along the sides
-	 * 4. Number of pieces along the bottom
-	 * 5. Number of possible moves that avoid a threat(possible jump) 
-	 * 6. Number of pieces next to an ally
+	 * 2. Number of pawns on the side -DONE
+	 * 3. Number of kings on the side -DONE
+	 * 4. Number of possible pawn moves - DONE
+	 * 5. Number of possible king moves - DONE
+	 * 6. Total distance of pawns to the other edge -DONE
+	 * 7. Number of empty slots on the other edge -DONE
+	 * 8. Number of pieces on the bottom two rows (Defenders) -DONE
+	 * 9. Number of pieces on the top three rows (Attacker) -DONE
+	 * 10. Number of pawns in the center eight 
+	 * 11. Number of kings in the center eight
+	 * 12. Number of pawns on the main diagonal
+	 * 13. Number of kings on the main diagonal
+	 * 14. Number of pawns on the double diagonal
+	 * 15. Number of kings on the double diagonal
+	 * 16. Number of pawns surrounded by no one
+	 * 17. Number of kings surrounded by no one
+	 * 18. Number of holes (an empty spot surrounded by 3 of the same color
+	 * 19. Triangle
+	 * 20. Oreo
+	 * 21. Bridge
+	 * 22. Dog
+	 * 23. Pawn in corner
+	 * 24. King in opposite corner
 	 */
 	private float[] weights;
 	
@@ -89,14 +107,41 @@ public class AI_Genetic_Player {
 				gameClone.makeMove(0);
 			}
 			
+			Piece[][] board = gameClone.getBoard();
 			//Here we call each attribute score and add them to the total score
 			//which we then add to the weightedScore arraylist
 			float totalScore = 0.0f;
-			totalScore += getScore_TotalPieces(gameClone, currentPlayer);
-			totalScore += getScore_TotalKings(gameClone, currentPlayer);
-			totalScore += getScore_TotalSides(gameClone, currentPlayer);
+			totalScore += getScore_TotalPieces(board, currentPlayer);
+			totalScore += getScore_TotalKings(board, currentPlayer);
+			totalScore += getScore_TotalPawnSides(board, currentPlayer);
+			totalScore += getScore_TotalKingSides(board, currentPlayer);
+			totalScore += getScore_TotalNewPawnMoves(gameClone, currentPlayer);
+			totalScore += getScore_TotalNewKingMoves(gameClone, currentPlayer);
+			totalScore += getScore_TotalDistanceFromEdge(board, currentPlayer);
+			totalScore += getScore_TotalEmptyPromotionTiles(board, currentPlayer);
+			totalScore += getScore_TotalDefenders(board, currentPlayer);
+			totalScore += getScore_TotalAttackers(board, currentPlayer);
 			
-			weightedScore.add(totalScore);
+			//Here we add the opponent's score to maximize our gain and minimize theirs
+			//NEW CODE <- This part was added to use a min max method 
+			//ALSO IMPORTANT - I changed all the methods to accept the board instead of the
+			//since all but two just read the board anyways
+			//This should speed up the process since getBoard is only called once now instead once 
+			//for each method
+			float opponentScore = 0.0f;
+			char opponentPlayer = (currentPlayer == 'R') ? 'B' :  'R';
+			opponentScore += getScore_TotalPieces(board, opponentPlayer);
+			opponentScore += getScore_TotalKings(board, opponentPlayer);
+			opponentScore += getScore_TotalPawnSides(board, opponentPlayer);
+			opponentScore += getScore_TotalKingSides(board, opponentPlayer);
+			opponentScore += getScore_TotalNewPawnMoves(gameClone, opponentPlayer);
+			opponentScore += getScore_TotalNewKingMoves(gameClone, opponentPlayer);
+			opponentScore += getScore_TotalDistanceFromEdge(board, opponentPlayer);
+			opponentScore += getScore_TotalEmptyPromotionTiles(board, opponentPlayer);
+			opponentScore += getScore_TotalDefenders(board, opponentPlayer);
+			opponentScore += getScore_TotalAttackers(board, opponentPlayer);
+			
+			weightedScore.add(totalScore - opponentScore);
 		}
 	}
 	
@@ -105,8 +150,8 @@ public class AI_Genetic_Player {
 	 ****************************************/
 	
 	//Counts the total pieces not including kings and add the scores
-	private float getScore_TotalPieces(Game game, char currentPlayer){
-		Piece[][] board = game.getBoard();
+	private float getScore_TotalPieces(Piece[][] board, char currentPlayer){
+		
 		int numPieces = 0;
 		
 		for (int i = 0; i < 8; i++){
@@ -121,8 +166,8 @@ public class AI_Genetic_Player {
 	}
 	
 	//Counts the total kings and add the scores
-	private float getScore_TotalKings(Game game, char currentPlayer){
-		Piece[][] board = game.getBoard();
+	private float getScore_TotalKings(Piece[][] board, char currentPlayer){
+			
 		int numKings = 0;
 		
 		for (int i = 0; i < 8; i++){
@@ -136,33 +181,33 @@ public class AI_Genetic_Player {
 		return weights[1] * (float)numKings;
 	}
 	
-	//Counts the total pieces including kings along the side 
-	private float getScore_TotalSides(Game game, char currentPlayer){
-		Piece[][] board = game.getBoard();
+	//Counts the total pieces not including kings along the side 
+	private float getScore_TotalPawnSides(Piece[][] board, char currentPlayer){
+
 		int numSide = 0;
 		
 		for (int i = 0; i < 8; i++){
 			//Left side has sides at 0,0 0,2 0,4 and 0,8
 			if(i%2 == 0){
 				if (currentPlayer == 'R'){
-					if(board[0][i] == Piece.RED || board[0][i] == Piece.RED_KING){
+					if(board[0][i] == Piece.RED){
 						numSide++;
 					}
 				}
 				else{
-					if(board[0][i] == Piece.BLACK || board[0][i] == Piece.BLACK_KING){
+					if(board[0][i] == Piece.BLACK){
 						numSide++;
 					} 
 				}
 			}
 			else if(i%2 == 1){
 				if (currentPlayer == 'R'){
-					if(board[7][i] == Piece.RED || board[7][i] == Piece.RED_KING){
+					if(board[7][i] == Piece.RED){
 						numSide++;
 					}
 				}
 				else{
-					if(board[7][i] == Piece.BLACK || board[7][i] == Piece.BLACK_KING){
+					if(board[7][i] == Piece.BLACK){
 						numSide++;
 					} 
 				}
@@ -170,6 +215,146 @@ public class AI_Genetic_Player {
 		}
 		
 		return weights[2] * (float)numSide;
+	}
+	
+	//Counts the total kings along the side 
+	private float getScore_TotalKingSides(Piece[][] board, char currentPlayer){
+		
+		int numSide = 0;
+		
+		for (int i = 0; i < 8; i++){
+			//Left side has sides at 0,0 0,2 0,4 and 0,8
+			if(i%2 == 0){
+				if (currentPlayer == 'R'){
+					if(board[0][i] == Piece.RED_KING){
+						numSide++;
+					}
+				}
+				else{
+					if(board[0][i] == Piece.BLACK_KING){
+						numSide++;
+					} 
+				}
+			}
+			else if(i%2 == 1){
+				if (currentPlayer == 'R'){
+					if(board[7][i] == Piece.RED_KING){
+						numSide++;
+					}
+				}
+				else{
+					if(board[7][i] == Piece.BLACK_KING){
+						numSide++;
+					} 
+				}
+			}
+		}
+		
+		return weights[3] * (float)numSide;
+	}
+	
+	//Counts the total number of new moves available for pawns after performing the previous move
+	private float getScore_TotalNewPawnMoves(Game game, char currentPlayer){
+		return weights[4] * (float)game.getNumValidMoves(currentPlayer, false);
+	}
+	
+	//Counts the total number of new moves available for pawns after performing the previous move
+	private float getScore_TotalNewKingMoves(Game game, char currentPlayer){
+		return weights[5] * (float)game.getNumValidMoves(currentPlayer, true);
+	}
+	
+	//Counts the total distance of all pawns from the edge
+	private float getScore_TotalDistanceFromEdge(Piece[][] board, char currentPlayer){
+		
+		int totalDistance = 0;
+		
+		for (int i = 0; i < 8; i++){
+			for (int j = 0; j < 8; j++){
+				if (currentPlayer == 'R' && board[i][j] == Piece.RED){
+					//The distance for red is 7 minus the y position
+					totalDistance += (7 - j);
+				}
+				else if (currentPlayer == 'B' && board[i][j] == Piece.BLACK){
+					//The distance for black is it's y position
+					totalDistance += j;
+				}
+			}
+		}
+		
+		return weights[6] * (float)totalDistance;
+	}
+	
+	//Counts the total empty spots on the promotion line
+	private float getScore_TotalEmptyPromotionTiles(Piece[][] board, char currentPlayer){
+		
+		int totalEmpty = 0;
+		
+		for (int i = 0; i < 8; i++){
+			if (currentPlayer == 'R' && board[i][7] == Piece.EMPTY){
+				totalEmpty++;
+			}
+			else if (currentPlayer == 'B' && board[i][0] == Piece.EMPTY){
+				totalEmpty++;
+			}
+		}
+		
+		return weights[7] * (float)totalEmpty;
+	}
+	
+	//Counts the total defending pieces (pieces on the bottom two rows)
+	private float getScore_TotalDefenders(Piece[][] board, char currentPlayer){
+		
+		int totalDefenders = 0;
+		
+		for (int i = 0; i < 8; i++){
+			if (currentPlayer == 'R'){
+				if (board[i][0] == Piece.RED || board[i][0] == Piece.RED_KING)
+					totalDefenders++;
+				
+				if (board[i][1] == Piece.RED || board[i][1] == Piece.RED_KING)
+					totalDefenders++;
+			}
+			else if (currentPlayer == 'B'){
+				if (board[i][7] == Piece.BLACK || board[i][7] == Piece.BLACK_KING)
+					totalDefenders++;
+				
+				if (board[i][6] == Piece.BLACK || board[i][6] == Piece.BLACK_KING)
+					totalDefenders++;
+			}
+		}
+		
+		return weights[8] * (float)totalDefenders;
+	}
+	
+	//Counts the total attacking pieces (pieces on the top three rows)
+	private float getScore_TotalAttackers(Piece[][] board, char currentPlayer){
+		
+		int totalAttacker = 0;
+		
+		for (int i = 0; i < 8; i++){
+			if (currentPlayer == 'R'){
+				if (board[i][7] == Piece.RED || board[i][7] == Piece.RED_KING)
+					totalAttacker++;
+				
+				if (board[i][6] == Piece.RED || board[i][6] == Piece.RED_KING)
+					totalAttacker++;
+				
+				if (board[i][5] == Piece.RED || board[i][5] == Piece.RED_KING)
+					totalAttacker++;
+			}
+			else if (currentPlayer == 'B'){
+				if (board[i][0] == Piece.BLACK || board[i][0] == Piece.BLACK_KING)
+					totalAttacker++;
+				
+				if (board[i][1] == Piece.BLACK || board[i][1] == Piece.BLACK_KING)
+					totalAttacker++;
+				
+				if (board[i][2] == Piece.BLACK || board[i][2] == Piece.BLACK_KING)
+					totalAttacker++;
+			}
+		}
+		
+		return weights[9] * (float)totalAttacker;
 	}
 	
 }

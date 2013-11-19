@@ -133,7 +133,7 @@ public class Game implements Cloneable {
 		//If it does have a jump, then the list for sure won't have the single move
 		if (Math.abs(endX - startX) == 1 && validMoves.get(0).charAt(0) != 't' && validMoves.contains("f" + firstMove)){
 			
-			System.out.println("Playing move");
+			//System.out.println("Playing move");
 			//First copy the original piece to the new spot
 			board.setPiece(endX, endY, checkKing(endY, board.getPiece(startX, startY)));
 			//Then set the original spot to empty
@@ -266,6 +266,62 @@ public class Game implements Cloneable {
 				}
 			}
 		}
+	}
+	
+	//Changes the current player to the inputted player and finds the valid moves for that player
+	//Also takes a boolean lookForKings
+	//If lookForKings is true, return only the moves of kings
+	//else, return the moves of pawns
+	//Returns the number of available moves
+	public int getNumValidMoves(char currentPlayer, boolean lookForKings){
+		int numValidMoves = 0;
+	
+		//Backup the valid moves list and the current player to restore later
+		char backupCurrentPlayer = currentPlayer;
+		ArrayList<String> backupValidMoves = new ArrayList<String>();
+		for (int i = 0; i < validMoves.size(); i++){
+			backupValidMoves.add(validMoves.get(i));
+		}
+		
+		//Find and store the number of valid moves
+		this.currentPlayer = currentPlayer;
+		setValidMoves();
+		
+		//Search the valid moves for the specific types
+		for (int i = 0; i < validMoves.size(); i++){
+			String move = validMoves.get(i);
+			
+			char posX = move.charAt(1);
+			char posY = move.charAt(2);
+			char zero = '0';
+			
+			int castedPosX = (int)posX - (int)zero;
+			int castedPosY = (int)posY - (int)zero;
+			
+			//Check for pawn moves
+			if (!lookForKings){
+				if (currentPlayer == 'B' && board.getBoard()[castedPosX][castedPosY] == Piece.BLACK){
+					numValidMoves++;
+				}
+				else if (currentPlayer == 'R' && board.getBoard()[castedPosX][castedPosY] == Piece.RED){
+					numValidMoves++;
+				}
+			}
+			//Check for king moves
+			else {
+				if (currentPlayer == 'B' && board.getBoard()[castedPosX][castedPosY] == Piece.BLACK_KING){
+					numValidMoves++;
+				}
+				else if (currentPlayer == 'R' && board.getBoard()[castedPosX][castedPosY] == Piece.RED_KING){
+					numValidMoves++;
+				}
+			}
+		}
+		
+		//Restore backups
+		validMoves = backupValidMoves;
+		currentPlayer = backupCurrentPlayer;
+		return numValidMoves;
 	}
 	
 	/*
