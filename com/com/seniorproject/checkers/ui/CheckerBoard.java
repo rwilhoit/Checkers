@@ -19,10 +19,10 @@ import javax.swing.JPanel;
 import com.seniorproject.checkers.Game;
 import com.seniorproject.checkers.Piece;
 
-public class Checkerboard extends JFrame {
+public class CheckerBoard extends JFrame {
 	
 	// Set visible and invisible
-    static Checkerboard checkerboard;						// This instance of the class
+    static CheckerBoard checkerboard;						// This instance of the class
 	JLayeredPane layeredPane;								// The window the board is drawn in
 	JPanel checkerboardPanel;  								// Each square in the board
 	JLabel checkerPiece;									// Each checker piece
@@ -274,7 +274,7 @@ public class Checkerboard extends JFrame {
 	}
 
 	public static void main(String[] args) throws IOException {
-	    checkerboard = new Checkerboard();
+	    checkerboard = new CheckerBoard();
 	    checkerboard.setMouseListener();
 	    game = new Game();
 		game.start();
