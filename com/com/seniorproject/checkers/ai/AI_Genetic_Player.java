@@ -33,13 +33,15 @@ public class AI_Genetic_Player {
 	 * 16. Number of pawns surrounded by no one
 	 * 17. Number of kings surrounded by no one
 	 * 18. Number of holes (an empty spot surrounded by 3 of the same color
-	 * 19. Triangle
-	 * 20. Oreo
-	 * 21. Bridge
-	 * 22. Dog
-	 * 23. Pawn in corner
+	 * 19. Triangle - DONE
+	 * 20. Oreo - DONE
+	 * 21. Bridge - DONE
+	 * 22. Dog - DONE
+	 * 23. Pawn in corner - DONE
 	 * 24. King in opposite corner
 	 */
+	
+	
 	private float[] weights;
 	
 	//A weight score array corresponding to the current valid move list
@@ -121,6 +123,12 @@ public class AI_Genetic_Player {
 			totalScore += getScore_TotalEmptyPromotionTiles(board, currentPlayer);
 			totalScore += getScore_TotalDefenders(board, currentPlayer);
 			totalScore += getScore_TotalAttackers(board, currentPlayer);
+			totalScore += getScore_NumberOfPawnsInCenter(board, currentPlayer);
+			totalScore += getScore_NumberOfKingsInCenter(board, currentPlayer);
+			totalScore += getScore_NumberOfPawnsInMainDiagonal(board, currentPlayer);
+			totalScore += getScore_NumberOfKingsInMainDiagonal(board, currentPlayer);
+			totalScore += getScore_NumberOfPawnsInDoubleDiagonal(board, currentPlayer);
+			totalScore += getScore_NumberOfKingsInDoubleDiagonal(board, currentPlayer);
 			totalScore += getScore_Triangle(board, currentPlayer);
 			totalScore += getScore_Oreo(board, currentPlayer);
 			totalScore += getScore_Bridge(board, currentPlayer);
@@ -146,6 +154,12 @@ public class AI_Genetic_Player {
 			opponentScore += getScore_TotalEmptyPromotionTiles(board, opponentPlayer);
 			opponentScore += getScore_TotalDefenders(board, opponentPlayer);
 			opponentScore += getScore_TotalAttackers(board, opponentPlayer);
+			opponentScore += getScore_NumberOfPawnsInCenter(board, opponentPlayer);
+			opponentScore += getScore_NumberOfKingsInCenter(board, opponentPlayer);
+			opponentScore += getScore_NumberOfPawnsInMainDiagonal(board, opponentPlayer);
+			opponentScore += getScore_NumberOfKingsInMainDiagonal(board, opponentPlayer);
+			opponentScore += getScore_NumberOfPawnsInDoubleDiagonal(board, opponentPlayer);
+			opponentScore += getScore_NumberOfKingsInDoubleDiagonal(board, opponentPlayer);
 			opponentScore += getScore_Triangle(board, opponentPlayer);
 			opponentScore += getScore_Oreo(board, opponentPlayer);
 			opponentScore += getScore_Bridge(board, opponentPlayer);
@@ -367,6 +381,222 @@ public class AI_Genetic_Player {
 		}
 		
 		return weights[9] * (float)totalAttacker;
+	}
+	
+	// Sorry this is hackathon style - there wasn't time
+	// 10. Number of pawns in the center eight 
+	private float getScore_NumberOfPawnsInCenter(Piece[][] board, char currentPlayer){
+		int pawnsInCenter = 0;
+		
+		if(currentPlayer == 'R') {
+			if(board[2][2] == Piece.RED) pawnsInCenter++;
+			if(board[4][2] == Piece.RED) pawnsInCenter++;
+			if(board[3][3] == Piece.RED) pawnsInCenter++;
+			if(board[5][3] == Piece.RED) pawnsInCenter++;
+			if(board[2][4] == Piece.RED) pawnsInCenter++;
+			if(board[4][4] == Piece.RED) pawnsInCenter++;
+			if(board[3][5] == Piece.RED) pawnsInCenter++;
+			if(board[5][5] == Piece.RED) pawnsInCenter++;
+		}
+		else if(currentPlayer == 'B') {
+			if(board[2][2] == Piece.BLACK) pawnsInCenter++;
+			if(board[4][2] == Piece.BLACK) pawnsInCenter++;
+			if(board[3][3] == Piece.BLACK) pawnsInCenter++;
+			if(board[5][3] == Piece.BLACK) pawnsInCenter++;
+			if(board[2][4] == Piece.BLACK) pawnsInCenter++;
+			if(board[4][4] == Piece.BLACK) pawnsInCenter++;
+			if(board[3][5] == Piece.BLACK) pawnsInCenter++;
+			if(board[5][5] == Piece.BLACK) pawnsInCenter++;
+		}
+		else {
+			// Else nothing
+		}
+		
+		
+		return weights[10] * (float)pawnsInCenter;
+	}
+
+	// 11. Number of kings in the center eight
+	private float getScore_NumberOfKingsInCenter(Piece[][] board, char currentPlayer){
+		int kingsInCenter = 0;
+		
+		if(currentPlayer == 'R') {
+			if(board[2][2] == Piece.RED_KING) kingsInCenter++;
+			if(board[4][2] == Piece.RED_KING) kingsInCenter++;
+			if(board[3][3] == Piece.RED_KING) kingsInCenter++;
+			if(board[5][3] == Piece.RED_KING) kingsInCenter++;
+			if(board[2][4] == Piece.RED_KING) kingsInCenter++;
+			if(board[4][4] == Piece.RED_KING) kingsInCenter++;
+			if(board[3][5] == Piece.RED_KING) kingsInCenter++;
+			if(board[5][5] == Piece.RED_KING) kingsInCenter++;
+		}
+		else if(currentPlayer == 'B') {
+			if(board[2][2] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[4][2] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[3][3] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[5][3] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[2][4] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[4][4] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[3][5] == Piece.BLACK_KING) kingsInCenter++;
+			if(board[5][5] == Piece.BLACK_KING) kingsInCenter++;
+		}
+		else {
+			// Else nothing
+		}
+		
+		return weights[11] * (float)kingsInCenter;
+	}
+
+	 // 12. Number of pawns on the main diagonal
+	private float getScore_NumberOfPawnsInMainDiagonal(Piece[][] board, char currentPlayer){
+		int pawnsInMainDiagonal = 0;
+		
+		if(currentPlayer == 'R') {
+			for(int i=0;i<8;i++) {
+				if(board[i][i] == Piece.RED) {
+					pawnsInMainDiagonal++;
+				}
+			}
+		}
+		else if(currentPlayer == 'B') {
+			for(int i=0;i<8;i++) {
+				if(board[i][i] == Piece.BLACK) {
+					pawnsInMainDiagonal++;
+				}
+			}	
+		}
+		else {
+			// Else nothing
+		}
+		
+		return weights[12] * (float)pawnsInMainDiagonal;
+	}
+	
+	 // 13. Number of kings on the main diagonal
+	private float getScore_NumberOfKingsInMainDiagonal(Piece[][] board, char currentPlayer){
+		int kingsInMainDiagonal = 0;
+		
+		if(currentPlayer == 'R') {
+			for(int i=0;i<8;i++) {
+				if(board[i][i] == Piece.RED_KING) {
+					kingsInMainDiagonal++;
+				}
+			}	
+		}
+		else if(currentPlayer == 'B') {
+			for(int i=0;i<8;i++) {
+				if(board[i][i] == Piece.BLACK_KING) {
+					kingsInMainDiagonal++;
+				}
+			}	
+		}
+		else {
+			// Else nothing
+		}
+		
+		return weights[13] * (float)kingsInMainDiagonal;
+	}
+	
+	 // 14. Number of pawns on the double diagonal
+	private float getScore_NumberOfPawnsInDoubleDiagonal(Piece[][] board, char currentPlayer){
+		int pawnsInDoubleDiagonal = 0;
+		
+		if(currentPlayer == 'R') {
+
+			// Check diagonal from [0][6] to [6][0]
+			if(board[0][6] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[1][5] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[2][4] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[3][5] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[4][2] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[5][1] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[6][0] == Piece.RED) pawnsInDoubleDiagonal++;
+			
+			// Check diagonal from [1][7] to [7][1]
+			if(board[1][7] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[2][6] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[3][5] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[4][4] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[5][3] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[6][2] == Piece.RED) pawnsInDoubleDiagonal++;
+			if(board[7][1] == Piece.RED) pawnsInDoubleDiagonal++;
+
+		}
+		else if(currentPlayer == 'B') {
+
+			// Check diagonal from [0][6] to [6][0]
+			if(board[0][6] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[1][5] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[2][4] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[3][5] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[4][2] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[5][1] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[6][0] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			
+			// Check diagonal from [1][7] to [7][1]
+			if(board[1][7] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[2][6] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[3][5] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[4][4] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[5][3] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[6][2] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			if(board[7][1] == Piece.BLACK) pawnsInDoubleDiagonal++;
+			
+		}
+		else {
+			// Else nothing
+		}
+		
+		return weights[14] * (float)pawnsInDoubleDiagonal;
+	}
+	
+	 // 15. Number of kings on the double diagonal
+	private float getScore_NumberOfKingsInDoubleDiagonal(Piece[][] board, char currentPlayer){
+		int kingsInDoubleDiagonal = 0;
+		
+		if(currentPlayer == 'R') {
+			// Check diagonal from [0][6] to [6][0]
+			if(board[0][6] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[1][5] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[2][4] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[3][5] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[4][2] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[5][1] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[6][0] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			
+			// Check diagonal from [1][7] to [7][1]
+			if(board[1][7] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[2][6] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[3][5] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[4][4] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[5][3] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[6][2] == Piece.RED_KING) kingsInDoubleDiagonal++;
+			if(board[7][1] == Piece.RED_KING) kingsInDoubleDiagonal++;
+		}
+		else if(currentPlayer == 'B') {
+			// Check diagonal from [0][6] to [6][0]
+			if(board[0][6] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[1][5] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[2][4] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[3][5] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[4][2] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[5][1] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[6][0] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			
+			// Check diagonal from [1][7] to [7][1]
+			if(board[1][7] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[2][6] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[3][5] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[4][4] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[5][3] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[6][2] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+			if(board[7][1] == Piece.BLACK_KING) kingsInDoubleDiagonal++;
+		}
+		else {
+			// Else nothing
+		}
+		
+		return weights[15] * (float)kingsInDoubleDiagonal;
 	}
 	
 	//Six pattern features - features (20)-(25) can take only boolean values. 
