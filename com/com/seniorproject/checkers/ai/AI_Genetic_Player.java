@@ -129,6 +129,9 @@ public class AI_Genetic_Player {
 			totalScore += getScore_NumberOfKingsInMainDiagonal(board, currentPlayer);
 			totalScore += getScore_NumberOfPawnsInDoubleDiagonal(board, currentPlayer);
 			totalScore += getScore_NumberOfKingsInDoubleDiagonal(board, currentPlayer);
+			totalScore += getScore_LonerPawns(board, currentPlayer);
+			totalScore += getScore_LonerKings(board, currentPlayer);
+			totalScore += getScore_Holes(board, currentPlayer);
 			totalScore += getScore_Triangle(board, currentPlayer);
 			totalScore += getScore_Oreo(board, currentPlayer);
 			totalScore += getScore_Bridge(board, currentPlayer);
@@ -160,6 +163,9 @@ public class AI_Genetic_Player {
 			opponentScore += getScore_NumberOfKingsInMainDiagonal(board, opponentPlayer);
 			opponentScore += getScore_NumberOfPawnsInDoubleDiagonal(board, opponentPlayer);
 			opponentScore += getScore_NumberOfKingsInDoubleDiagonal(board, opponentPlayer);
+			opponentScore += getScore_LonerPawns(board, opponentPlayer);
+			opponentScore += getScore_LonerKings(board, opponentPlayer);
+			opponentScore += getScore_Holes(board, opponentPlayer);
 			opponentScore += getScore_Triangle(board, opponentPlayer);
 			opponentScore += getScore_Oreo(board, opponentPlayer);
 			opponentScore += getScore_Bridge(board, opponentPlayer);
@@ -599,16 +605,139 @@ public class AI_Genetic_Player {
 		return weights[15] * (float)kingsInDoubleDiagonal;
 	}
 	
-	//Six pattern features - features (20)-(25) can take only boolean values. 
-	//(20) A Triangle - white pawns on squares 27, 31 and 32; 
-	//(21) An Oreo - white pawns on squares 26, 30 and 31; 
-	//(22) A Bridge - white pawns on squares 30 and 32; 
-	//(23) A Dog - white pawn on square 32 and a black one on square 28; 
-	//(24) A Pawn in the Corner - white man on square 29; 
-	//(25) A King in the Corner - white king on square 4;
-	//Checks if there is are any triangle formations
+	// (16) Numbers of loner pawns (a loner piece was defined as the one not adjacent to any other piece) 
+	private float getScore_LonerPawns(Piece[][] board, char currentPlayer) {
+		int lonerPawns = 0;
+		
+		for (int i = 0; i < 8; i++){
+			for (int j = 0; j < 8; j++){
+				if(currentPlayer == 'R' && board[i][j] == Piece.RED) {
+					if(pieceIsAlone(board,i,j)) {
+						lonerPawns++;
+					}
+				}
+				else if(currentPlayer == 'B' && board[i][j] == Piece.BLACK) {
+					if(pieceIsAlone(board,i,j)) {
+						lonerPawns++;
+					}
+				}
+				else {
+					// Else nothing
+				}
+			}
+		}
+		
+		return weights[16] * (float)lonerPawns;
+	}
+
+	// (17) Number of loner kings (a loner piece was defined as the one not adjacent to any other piece) 
+	private float getScore_LonerKings(Piece[][] board, char currentPlayer) {
+		int lonerKings = 0;
+		
+		for (int i = 0; i < 8; i++){
+			for (int j = 0; j < 8; j++){
+				if(currentPlayer == 'R' && board[i][j] == Piece.RED_KING) {
+					if(pieceIsAlone(board,i,j)) {
+						lonerKings++;
+					}
+				}
+				else if(currentPlayer == 'B' && board[i][j] == Piece.BLACK_KING) {
+					if(pieceIsAlone(board,i,j)) {
+						lonerKings++;
+					}
+				}
+				else {
+					// Else nothing
+				}
+			}
+		}
+		
+		return weights[17] * (float)lonerKings;
+	}
 	
-	//(20) A Triangle - white pawns on squares 27, 31 and 32; 
+	private boolean pieceIsAlone(Piece[][] board, int i, int j) {
+		
+		boolean alone = true; 
+		
+		// Check that coordinates [i-1][j+1], [i-1][j-1], [i+1][j+1], [i+1][j-1] are in bounds, then check for adjacent pieces
+		if(isInBounds(i-1,j+1) && board[i-1][j+1] != Piece.EMPTY) {
+			alone = false;
+		}
+		else if(isInBounds(i-1,j-1) && board[i-1][j-1] != Piece.EMPTY) {
+			alone = false;
+		}
+		else if(isInBounds(i+1,j+1) && board[i+1][j+1] != Piece.EMPTY) {
+			alone = false;
+		}
+		else if(isInBounds(i+1,j-1) && board[i+1][j-1] != Piece.EMPTY) {
+			alone = false;
+		}
+		else {
+			// Else nothing
+		}
+
+		return alone;
+	}
+
+	// (18) Number of holes - i.e. empty squares adjacent to at least three pieces of the same color.
+	private float getScore_Holes(Piece[][] board, char currentPlayer) {
+		int holes = 0;
+		
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				if(board[i][j] == Piece.EMPTY) {
+					if(emptySpotIsHole(board,i,j)) {
+						holes++;
+					}
+				}
+			}	
+		}
+		
+		return weights[18] * (float)holes;
+	}
+	
+	private boolean emptySpotIsHole(Piece[][] board, int i, int j) {
+		boolean hole = false;
+		int pieceCount = 0;
+		
+		// The provided coordinates are of an empty square
+		// Check the surrounding locations: [i-1][j+1], [i-1][j-1], [i+1][j+1], [i+1][j-1], to see how many pieces there are
+		if(isInBounds(i-1,j+1) && board[i-1][j+1] != Piece.EMPTY) {
+			pieceCount++;
+		}
+		if(isInBounds(i-1,j-1) && board[i-1][j-1] != Piece.EMPTY) {
+			pieceCount++;
+		}
+		if(isInBounds(i+1,j+1) && board[i+1][j+1] != Piece.EMPTY) {
+			pieceCount++;
+		}
+		if(isInBounds(i+1,j-1) && board[i+1][j-1] != Piece.EMPTY) {
+			pieceCount++;
+		}
+
+		if(pieceCount >= 3) {
+			hole = true;
+		}
+		
+		return hole;
+	}
+	
+	private boolean isInBounds(int i, int j) {
+		if(i >= 0 && i <= 7 && j >= 0 && j <= 7) {
+			return true;
+		}
+		return false;
+	}
+	
+	//Six pattern features - features (20)-(25) can take only boolean values. 
+	//(19) A Triangle - white pawns on squares 27, 31 and 32; 
+	//(20) An Oreo - white pawns on squares 26, 30 and 31; 
+	//(21) A Bridge - white pawns on squares 30 and 32; 
+	//(22) A Dog - white pawn on square 32 and a black one on square 28; 
+	//(23) A Pawn in the Corner - white man on square 29; 
+	//(24) A King in the Corner - white king on square 4;
+	//Checks if there is are any triangle formations
+	//(19) A Triangle - white pawns on squares 27, 31 and 32; 
 	private float getScore_Triangle(Piece[][] board, char currentPlayer) {
 		int triangle = 0;
 		
@@ -624,7 +753,7 @@ public class AI_Genetic_Player {
 		return weights[19] * (float)triangle;
 	}
 	
-	//(21) An Oreo - white pawns on squares 26, 30 and 31; 
+	//(20) An Oreo - white pawns on squares 26, 30 and 31; 
 	private float getScore_Oreo(Piece[][] board, char currentPlayer) {
 		int oreo = 0;
 		
@@ -642,7 +771,7 @@ public class AI_Genetic_Player {
 
 	}
 	
-	//(22) A Bridge - white pawns on squares 30 and 32; 
+	//(21) A Bridge - white pawns on squares 30 and 32; 
 	private float getScore_Bridge(Piece[][] board, char currentPlayer) {
 		int bridge = 0;
 		
@@ -660,7 +789,7 @@ public class AI_Genetic_Player {
 
 	}
 	
-	//(23) A Dog - white pawn on square 32 and a black one on square 28; 
+	//(22) A Dog - white pawn on square 32 and a black one on square 28; 
 	private float getScore_Dog(Piece[][] board, char currentPlayer) {
 		int dog = 0;
 		
@@ -678,7 +807,7 @@ public class AI_Genetic_Player {
 
 	}
 	
-	//(24) A Pawn in the Corner - white man on square 29; 
+	//(23) A Pawn in the Corner - white man on square 29; 
 	private float getScore_CornerPawn(Piece[][] board, char currentPlayer) {
 		int cornerPawn = 0;
 		
@@ -696,7 +825,7 @@ public class AI_Genetic_Player {
 
 	}
 	
-	//(25) A King in the Corner - white king on square 4;
+	//(24) A King in the Corner - white king on square 4;
 	private float getScore_CornerKing(Piece[][] board, char currentPlayer) {
 		int cornerKing = 0;
 		
