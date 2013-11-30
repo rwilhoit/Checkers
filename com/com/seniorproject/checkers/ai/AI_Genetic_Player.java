@@ -69,10 +69,11 @@ public class AI_Genetic_Player {
 		//Sets the score for each move
 		setWeightedScores();
 		
-		float max = Float.MIN_VALUE;
+		float max = Float.MAX_VALUE * -1;
 		int index = -1;
 		
 		//Return the move with the highest code
+		
 		for (int i = 0; i < weightedScore.size(); i++){
 			if (weightedScore.get(i) > max){
 				max = weightedScore.get(i);

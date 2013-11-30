@@ -111,18 +111,23 @@ public class Game implements Cloneable {
 			return false;
 		}
 		
+		
+			
 		int startX = Integer.parseInt(validMoves.get(index).substring(1,2));
 		int	startY = Integer.parseInt(validMoves.get(index).substring(2,3));
 		int endX = Integer.parseInt(validMoves.get(index).substring(3,4));
 		int	endY = Integer.parseInt(validMoves.get(index).substring(4,5));
 		
-		return makeMove(startX, startY, endX, endY);
+		if (validMoves.get(index).length() > 5)
+			return makeMove(startX, startY, endX, endY, true);
+		else
+			return makeMove(startX, startY, endX, endY, false);
 	}
 	
 	//DEPRECATED
 	//Used makeMove(int index) instead 
 	//Performs the given move returning true if successful
-	public boolean makeMove(int startX, int startY, int endX, int endY){
+	public boolean makeMove(int startX, int startY, int endX, int endY, boolean doubleJump){
 		
 		//String representation of the first move
 		String firstMove = "" + startX + startY + endX + endY;
@@ -139,7 +144,9 @@ public class Game implements Cloneable {
 			//Then set the original spot to empty
 			board.setPiece(startX, startY, Piece.EMPTY);
 			//Change the current player
-			currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
+			if (!doubleJump){
+				currentPlayer = (currentPlayer == 'R' ? 'B' : 'R');
+			}
 			//Set the valid moves for the new player
 			setValidMoves();
 			
@@ -202,17 +209,6 @@ public class Game implements Cloneable {
 		
 	}
 
-	//Performs the given move returning true if successful
-	public boolean makeMoveForString(String move) {
-		
-		int startX = new Integer(move.substring(1,2));
-		int startY = new Integer(move.substring(2,3));
-		int endX = new Integer(move.substring(3,4));
-		int endY = new Integer(move.substring(4,5));
-		
-		return makeMove(startX, startY, endX, endY);
-	}
-
 	
 	/*
 	 * Checks if the end y position would king the piece
@@ -263,6 +259,7 @@ public class Game implements Cloneable {
 			for (int i = 0; i < validMoves.size(); i++) {
 				if (validMoves.get(i).charAt(0) == 'f') {
 					validMoves.remove(i);
+					i--;
 				}
 			}
 		}

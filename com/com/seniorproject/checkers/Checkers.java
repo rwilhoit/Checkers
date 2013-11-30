@@ -6,9 +6,47 @@ import com.seniorproject.checkers.ai.AI_Genetic;
 
 public class Checkers {
 	public static void main(String[] args) throws IOException, ClassNotFoundException{
+		/*
+		Game game = new Game();
+		game.start();
+		Scanner scan = new Scanner(System.in);
+		
+		float[] weights = new float[25];
+		for (int i = 0; i < 25; i++){
+			weights[i] = 30.0f;
+		}
+		
+		AI_Genetic_Player ai = new AI_Genetic_Player(weights, 25);
+		ai.setGame(game);
+		
+		while(true){
+			if (game.currentPlayer == 'R'){
+				game.printBoard();
+				for (int i = 0; i < game.getValidMoves().size(); i++){
+					System.out.println("Move " + i + ": " + game.getValidMoves().get(i));
+				}
+				int move = scan.nextInt();
+				
+				game.makeMove(move);
+			}
+			
+			if (game.currentPlayer == 'B'){
+				ai.setGame(game);
+				
+				game.printBoard();
+				int aiMove = ai.makeMove();
+				for (int i = 0; i < game.getValidMoves().size(); i++){
+					System.out.println("Move " + i + ": " + game.getValidMoves().get(i));
+				}
+				System.out.println("AI's move = " + aiMove);
+				game.makeMove(aiMove);
+			}
+		}
+		*/
+		
 		AI_Genetic ai_genetic = new AI_Genetic();
 		
-		for (int i = 0; i < 1000; i++){
+		while(true){
 			float[] weight = ai_genetic.getCurrentWeights();
 			
 			for (int j = 0; j < ai_genetic.getNumWeights(); j++){
@@ -19,7 +57,10 @@ public class Checkers {
 			
 			ai_genetic.run();
 		}
-
+		
+		
+		
+		
 		/*
 		AI_Probability ai = new AI_Probability('B'); 	// AI class
 		AI_Random ai_r;									// AI Random class 

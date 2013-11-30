@@ -8,14 +8,14 @@ import com.seniorproject.checkers.Piece;
 
 public class AI_Genetic{
 	//Stores the number of variable types used as weights
-	final private int numTypeWeights = 10;
+	final private int numTypeWeights = 25;
 	
 	//Amount to vary the weights by
-	final private float weightVariance = 10.0f;
+	final private float weightVariance = 150.0f;
 	
 	//Number of turns to wait for no pieces to change
 	//before a draw is called
-	final private int maxTurn_NoPieceChange = 20;
+	final private int maxTurn_NoPieceChange = 100;
 	
 	//Array of the genetic players
 	//Number of players equals twice the number type of weights
@@ -26,7 +26,7 @@ public class AI_Genetic{
 	final private int numPlayers = numTypeWeights * 2;
 	
 	//Number of players to average into the parent
-	final private int numTopPlayers = 3;
+	final private int numTopPlayers = 15;
 	
 	//Scores of each player
 	//+10 for wins
@@ -43,16 +43,31 @@ public class AI_Genetic{
 		weights = new float[numTypeWeights];
 		
 		//Preset the weight to what I think they should be because the starting AI is RETARDED
-		weights[0] = 20.0f;
-		weights[1] = 30.0f;
-		weights[2] = 40.0f;
-		weights[3] = 60.0f;
-		weights[4] = 40.0f;
-		weights[5] = 60.0f;
-		weights[6] = -20.0f;
-		weights[7] = 50.0f;
-		weights[8] = 80.0f;
-		weights[9] = 50.0f;
+		weights[0] = 1650.0f;
+		weights[1] = 1650.0f;
+		weights[2] = 1600.0f;
+		weights[3] = 1630.0f;
+		weights[4] = 1630.0f;
+		weights[5] = 1630.0f;
+		weights[6] = 1560.0f;
+		weights[7] = 1570.0f;
+		weights[8] = 1700.0f;
+		weights[9] = 1520.0f;
+		weights[10] = 1520.0f;
+		weights[11] = 1770.0f;
+		weights[12] = 1520.0f;
+		weights[13] = 1510.0f;
+		weights[14] = 1520.0f;
+		weights[15] = 1550.0f;
+		weights[16] = 1800.0f;
+		weights[17] = 1880.0f;
+		weights[18] = 1620.0f;
+		weights[19] = 1500.0f;
+		weights[20] = 1500.0f;
+		weights[21] = 1500.0f;
+		weights[22] = 1500.0f;
+		weights[23] = 1500.0f;
+		weights[24] = 1500.0f;
 		
 		
 		
@@ -71,13 +86,8 @@ public class AI_Genetic{
 			//Copies the weight array
 			float[] weightsCopy1 = Arrays.copyOf(weights, numTypeWeights);
 			
-			//Decrement the chosen weight and increments everything else
+			//Decrement the chosen weight 
 			weightsCopy1[weightIndex] -= weightVariance;
-			for (int weightIndex_NotCurrent = 0; weightIndex_NotCurrent < numTypeWeights; weightIndex_NotCurrent++){
-				if (weightIndex_NotCurrent != weightIndex){
-					weightsCopy1[weightIndex_NotCurrent] += weightVariance/(float)(numTypeWeights - 1);
-				}
-			}
 			
 			players[playerIndex] = new AI_Genetic_Player(weightsCopy1, numTypeWeights);
 			
@@ -86,11 +96,7 @@ public class AI_Genetic{
 			
 			//Increment the chosen weight and increments everything else
 			weightsCopy2[weightIndex] += weightVariance;
-			for (int weightIndex_NotCurrent = 0; weightIndex_NotCurrent < numTypeWeights; weightIndex_NotCurrent++){
-				if (weightIndex_NotCurrent != weightIndex){
-					weightsCopy2[weightIndex_NotCurrent] -= weightVariance/(float)(numTypeWeights - 1);
-				}
-			}
+
 			players[playerIndex + 1] = new AI_Genetic_Player(weightsCopy2, numTypeWeights);
 			
 			playerIndex += 2;
@@ -108,43 +114,29 @@ public class AI_Genetic{
 			//play against every other player except the ones already played
 			for (int player2 = player1 + 1; player2 < numPlayers; player2++){
 				int winner = getWinner(player1, player2);
-				int loser = winner == player1 ? player2 : player1;
-				
 				if (winner != -1){	
 					playerScores[winner] += 10;
-					playerScores[loser] -= 10;
-				}
-				else{
-					playerScores[player1] += 1;
-					playerScores[player2] += 1;
 				}
 			}
 		}
 		
 		//After the tournament, take the top players and changes the parent weights to their average 
-		ArrayList<Integer> topPlayersScores = new ArrayList<Integer>();
-		ArrayList<Integer> topPlayersIndex = new ArrayList<Integer>();
+		int[] sortedScores = Arrays.copyOf(playerScores, playerScores.length);
+		Arrays.sort(sortedScores);
 		
-		topPlayersScores.add(playerScores[0]);
-		topPlayersIndex.add(0);
-		
-		//Finds and store the top players
-		for(int playerIndex = 1; playerIndex < numPlayers; playerIndex++){
-			for (int topIndex = 0; topIndex < topPlayersScores.size(); topIndex++){
-				if(playerScores[playerIndex] > topPlayersScores.get(topIndex)){
-					topPlayersScores.add(topIndex, playerScores[playerIndex]);
-					topPlayersIndex.add(topIndex, playerIndex);
-					playerIndex++;
-				}
-				else if (topPlayersScores.size() < numTopPlayers){
-					topPlayersScores.add(playerScores[playerIndex]);
-					topPlayersIndex.add(playerIndex);
-					playerIndex++;
+		//Searches and stores the index of the top players using the sorted scores list
+		int[] indexOfTopPlayers = new int[numTopPlayers];
+		for (int i = 0; i < numTopPlayers; i++){
+			for (int j = 0; j < playerScores.length; j++){
+				if (playerScores[j] == sortedScores[numPlayers - (i + 1)]){
+					indexOfTopPlayers[i] = j;
+					playerScores[j] = -1;
+					break;
 				}
 			}
 		}
 		
-		//Reset the weights
+		//Reset the parent weights
 		for (int weightIndex = 0; weightIndex < numTypeWeights; weightIndex++){
 			weights[weightIndex] = 0.0f;
 		}
@@ -152,7 +144,7 @@ public class AI_Genetic{
 		//Averages the top players together and stores them as the weights
 		for (int topIndex = 0; topIndex < numTopPlayers; topIndex++){
 			for (int weightIndex = 0; weightIndex < numTypeWeights; weightIndex++){
-				float weight = players[topPlayersIndex.get(topIndex)].getWeights()[weightIndex];
+				float weight = players[indexOfTopPlayers[topIndex]].getWeights()[weightIndex];
 				weights[weightIndex] += weight/(float)numTopPlayers;
 			}
 		}
@@ -165,78 +157,57 @@ public class AI_Genetic{
 	private int getWinner(int player1, int player2){
 		Game game = new Game();
 		game.start();
-		int numTurns_NoPieceChange = 0;
-		int numPieces_Player1 = 12;
-		int numKings_Player1 = 0;
-		int numPieces_Player2 = 12;
-		int numKings_Player2 = 0;
 		
 		players[player1].setGame(game);
 		players[player2].setGame(game);
 		
 		//player1 is always first to move
 		int currentPlayer = player1;
+		int lastNumPieces = 0;
+		int lastNumKings = 0;
+		int numMoves_noChanges = 0;
 		
 		while(game.getValidMoves().size() != 0){
 			//Makes a move for that player
 			game.makeMove(players[currentPlayer].makeMove());
 			
-			//Draw Detection
-			//If no pieces change for the max turn, return -1
 			int numPieces = 0;
 			int numKings = 0;
-			Piece[][] board = game.getBoard();
 			
-			//Increments for each piece and king found for the current player
 			for (int i = 0; i < 8; i++){
 				for (int j = 0; j < 8; j++){
-					if(currentPlayer == player1){
-						if(board[i][j] == Piece.RED){
-							numPieces++;
-						}
-						else if (board[i][j] == Piece.RED_KING){
-							numKings++;
-						}
+					if (game.getBoard()[i][j] == Piece.RED || game.getBoard()[i][j] == Piece.BLACK){
+						numPieces++;
 					}
-					else if (currentPlayer == player2){
-						if(board[i][j] == Piece.BLACK){
-							numPieces++;
-						}
-						else if (board[i][j] == Piece.BLACK_KING){
-							numKings++;
-						}
-					}
+					else if (game.getBoard()[i][j] == Piece.RED_KING || game.getBoard()[i][j] == Piece.BLACK_KING){
+						numKings++;
+					} 
 				}
 			}
 			
-			//If the number of pieces and kings matches the last amount
-			//increment draw detection
-			if (currentPlayer == player1){
-				if (numPieces_Player1 == numPieces && numKings_Player1 == numKings){
-					numTurns_NoPieceChange++;
-				}
-				
-				//Set the number pieces and king for the current king to the current board's numbers
-				numPieces_Player1 = numPieces;
-				numKings_Player1 = numKings;
+			if (numPieces == lastNumPieces && numKings == lastNumKings){
+				numMoves_noChanges++;
 			}
 			else {
-				if (numPieces_Player2 == numPieces && numKings_Player2 == numKings){
-					numTurns_NoPieceChange++;
-				}
-				
-				//Set the number pieces and king for the current king to the current board's numbers
-				numPieces_Player2 = numPieces;
-				numKings_Player2 = numKings;
+				numMoves_noChanges = 0;
+				lastNumPieces = numPieces;
+				lastNumKings = numKings;
 			}
 			
-			//If numTurns_NoPieceChange reaches the max, return -1
-			if (numTurns_NoPieceChange >= maxTurn_NoPieceChange){
+			if (numMoves_noChanges > maxTurn_NoPieceChange){
 				return -1;
 			}
 			
 			//Switches the current player
-			currentPlayer = currentPlayer == player1 ? player2 : player1;
+			if (game.getCurrentPlayer() == 'R'){
+				currentPlayer = player1;
+			}
+			else{
+				currentPlayer = player2;
+			}
+			
+			players[player1].setGame(game);
+			players[player2].setGame(game);
 		}
 		
 		//The winner is the player that forced the other player to run out of moves
